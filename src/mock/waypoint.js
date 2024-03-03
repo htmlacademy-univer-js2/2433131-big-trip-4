@@ -1,7 +1,7 @@
 import { PRICES, DATES, BOOL, TYPES, OFFERS } from '../const.js';
 import { getRandomArrayElement, getRandomArrayElements, getRandomInt } from '../utils.js';
 
-const getMockWaypoint = () => {
+function getMockWaypoint () {
   const type = getRandomArrayElement(TYPES);
   const date = getRandomArrayElement(DATES);
   const offers = OFFERS.find((offer) => offer.type === type).offers.map((offer) => offer.id);
@@ -14,7 +14,7 @@ const getMockWaypoint = () => {
     isFavorite: getRandomArrayElement(BOOL),
     offers: getRandomArrayElements(offers, getRandomInt(offers.length)),
   };
-};
+}
 
 const mockWaypoints = [
   getMockWaypoint(),
