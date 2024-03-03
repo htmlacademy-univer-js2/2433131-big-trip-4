@@ -2,39 +2,43 @@ import { createElement } from '../render.js';
 import { humanizeWaypointDueDate } from '../utils.js';
 import { DATE_FORMAT_EDIT, DESTINATIONS, OFFERS } from '../const.js';
 
-const getEventOffer = ({id, title, price, isChecked}) => `
-  <div class="event__offer-selector">
-    <input class="event__offer-checkbox  visually-hidden" id="event-offer-${id}" type="checkbox" name="event-offer-${id}" ${isChecked ? 'checked' : ''}>
-    <label class="event__offer-label" for="event-offer-${id}">
-      <span class="event__offer-title">${title}</span>
-      &plus;&euro;&nbsp;
-      <span class="event__offer-price">${price}</span>
-    </label>
-  </div>
-`;
+function getEventOffer ({id, title, price, isChecked}) {
+  return `
+    <div class="event__offer-selector">
+      <input class="event__offer-checkbox  visually-hidden" id="event-offer-${id}" type="checkbox" name="event-offer-${id}" ${isChecked ? 'checked' : ''}>
+      <label class="event__offer-label" for="event-offer-${id}">
+        <span class="event__offer-title">${title}</span>
+        &plus;&euro;&nbsp;
+        <span class="event__offer-price">${price}</span>
+      </label>
+    </div>
+  `;
+}
 
-const getEventOffers = (checkedOffers, type) => {
+function getEventOffers (checkedOffers, type) {
   let result = '';
   for (const offer of OFFERS.find((findOffer) => findOffer.type === type).offers) {
     result += getEventOffer({...offer, isChecked: checkedOffers.includes(offer.id)});
   }
   return result;
-};
+}
 
-const getEventOfferType = (n) => `
-  <div class="event__type-item">
-  <input id="event-type-${OFFERS[n].type}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${OFFERS[n].type}">
-  <label class="event__type-label  event__type-label--${OFFERS[n].type}" for="event-type-${OFFERS[n].type}-1">${OFFERS[n].type}</label>
-  </div>
-`;
+function getEventOfferType (n) {
+  return `
+    <div class="event__type-item">
+    <input id="event-type-${OFFERS[n].type}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${OFFERS[n].type}">
+    <label class="event__type-label  event__type-label--${OFFERS[n].type}" for="event-type-${OFFERS[n].type}-1">${OFFERS[n].type}</label>
+    </div>
+  `;
+}
 
-const getEventOfferTypes = () => {
+function getEventOfferTypes () {
   let result = '';
   for (let i = 0; i <= OFFERS.length - 1; i++) {
     result += getEventOfferType(i);
   }
   return result;
-};
+}
 
 function createEditingFormTemplate({type, destination, offers, price, dateFrom, dateTo }) {
   const destinationObject = DESTINATIONS.find((dest) => dest.id === destination);
