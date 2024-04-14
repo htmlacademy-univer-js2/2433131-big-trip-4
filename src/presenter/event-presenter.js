@@ -3,8 +3,8 @@ import SortView from '../view/sort-view.js';
 import EventListView from '../view/event-list-view.js';
 import EditingFormView from '../view/editing-form-view.js';
 import WaypointView from '../view/waypoint-view.js';
-import {WAYPOINTS_COUNT, EDITING_FORM} from '../const.js';
-import {replace} from "../framework/render";
+import {WAYPOINTS_COUNT} from '../const.js';
+import {replace} from '../framework/render.js';
 
 export default class EventPresenter {
   #eventListContainer = new EventListView();
@@ -19,7 +19,7 @@ export default class EventPresenter {
     render(this.#eventListContainer, this.eventContainer);
 
     for (let i = 0; i < WAYPOINTS_COUNT; i++) {
-      this.#renderWaypoint(this.waypointsModel.waypoints[i])
+      this.#renderWaypoint(this.waypointsModel.waypoints[i]);
     }
   }
 
@@ -38,7 +38,7 @@ export default class EventPresenter {
         replacePointToForm();
         document.addEventListener('keydown', escKeyDownHandler);
       }
-    })
+    });
 
     const waypointEditComponent = new EditingFormView(
       {
@@ -48,7 +48,7 @@ export default class EventPresenter {
           document.removeEventListener('keydown', escKeyDownHandler);
         }
       }
-    )
+    );
 
     function replacePointToForm() {
       replace(waypointEditComponent, waypointComponent);
