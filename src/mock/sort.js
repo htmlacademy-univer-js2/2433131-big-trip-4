@@ -1,5 +1,5 @@
-import {sorts} from "../utils";
-import {SORTING_TYPES} from "../const";
+import {sorts} from '../utils';
+import {SORTING_TYPES} from '../const';
 
 export function getMockSorts() {
   return Object.entries(sorts).map(([name, getPoints]) => ({
