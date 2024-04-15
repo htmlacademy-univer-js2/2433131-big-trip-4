@@ -1,22 +1,24 @@
-import {render} from '../render.js';
+import { render, replace } from '../framework/render.js';
 import SortView from '../view/sort-view.js';
 import EventListView from '../view/event-list-view.js';
 import EditingFormView from '../view/editing-form-view.js';
 import WaypointView from '../view/waypoint-view.js';
-import {WAYPOINTS_COUNT} from '../const.js';
-import {replace} from '../framework/render.js';
+import { WAYPOINTS_COUNT } from '../const.js';
 
 export default class EventPresenter {
   #eventListContainer = new EventListView();
+  #eventContainer;
+  #sorts;
 
-  constructor({eventContainer, waypointsModel}) {
-    this.eventContainer = eventContainer;
+  constructor({eventContainer, waypointsModel, sorts}) {
+    this.#eventContainer = eventContainer;
     this.waypointsModel = waypointsModel;
+    this.#sorts = sorts;
   }
 
   init() {
-    render(new SortView(), this.eventContainer);
-    render(this.#eventListContainer, this.eventContainer);
+    render(new SortView({sorts: this.#sorts}), this.#eventContainer);
+    render(this.#eventListContainer, this.#eventContainer);
 
     for (let i = 0; i < WAYPOINTS_COUNT; i++) {
       this.#renderWaypoint(this.waypointsModel.waypoints[i]);
