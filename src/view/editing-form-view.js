@@ -40,6 +40,14 @@ function getEventOfferTypes () {
   return result;
 }
 
+function getDestinations() {
+  let result = '';
+  for (let i = 0; i <= DESTINATIONS.length - 1; i++) {
+    result += `<option value="${DESTINATIONS[i].name}"></option>`;
+  }
+  return result;
+}
+
 function createEditingFormTemplate({type, destination, offers, price, dateFrom, dateTo }) {
   const destinationObject = DESTINATIONS.find((dest) => dest.id === destination);
 
@@ -69,11 +77,7 @@ function createEditingFormTemplate({type, destination, offers, price, dateFrom, 
             </label>
             <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destinationObject.name}" list="destination-list-1">
             <datalist id="destination-list-1">
-              <option value="${DESTINATIONS[0].name}"></option>
-              <option value="${DESTINATIONS[1].name}"></option>
-              <option value="${DESTINATIONS[2].name}"></option>
-              <option value="${DESTINATIONS[3].name}"></option>
-              <option value="${DESTINATIONS[4].name}"></option>
+              ${getDestinations()}
             </datalist>
           </div>
 

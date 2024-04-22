@@ -95,9 +95,25 @@ const DATE_FORMAT_EDIT = 'DD/MM/YY hh:mm';
 const DATE_FORMAT_DAY = 'MMM DD';
 const DATE_FORMAT_HOURS = 'hh:mm';
 
+const FILTER_TYPE = {
+  EVERYTHING: 'everything',
+  FUTURE: 'future',
+  PRESENT: 'present',
+  PAST: 'past',
+};
+
+const SORTING_TYPES = {
+  DAY: 'day',
+  EVENT: 'event',
+  TIME: 'time',
+  PRICE: 'price',
+  OFFERS: 'offers'
+};
+
 export { WAYPOINTS_COUNT };
 export { PRICES, DATES, BOOL, TYPES };
 export { DESTINATIONS };
 export { OFFERS };
 export { DATE_FORMAT_EDIT, DATE_FORMAT_DAY, DATE_FORMAT_HOURS };
 export { EDITING_FORM };
+export { FILTER_TYPE, SORTING_TYPES };
