@@ -64,13 +64,16 @@ function createWaypointTemplate({type, destination, offers, price, dateFrom, dat
 
 export default class WaypointView extends AbstractView {
   #handleEditClick;
+  #handleFavoriteClick;
 
-  constructor({waypoint, onEditClick}) {
+  constructor({waypoint, onEditClick, onFavoriteClick}) {
     super();
     this.waypoint = waypoint;
     this.#handleEditClick = onEditClick;
+    this.#handleFavoriteClick = onFavoriteClick;
 
     this.element.querySelector('.event__rollup-btn').onclick = this.#editClickHandler;
+    this.element.querySelector('.event__favorite-btn').onclick = this.#favoriteClickHandler;
   }
 
   get template() {
@@ -80,5 +83,10 @@ export default class WaypointView extends AbstractView {
   #editClickHandler = (event) => {
     event.preventDefault();
     this.#handleEditClick();
+  };
+
+  #favoriteClickHandler = (event) => {
+    event.preventDefault();
+    this.#handleFavoriteClick();
   };
 }
