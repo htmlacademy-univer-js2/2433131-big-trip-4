@@ -8,15 +8,18 @@ export default class EventPresenter {
   #waypointPresenters = [];
   #eventContainer;
   #sorts;
+  #currentSortType;
 
   constructor({eventContainer, waypointsModel, sorts}) {
     this.#eventContainer = eventContainer;
     this.#sorts = sorts;
-    this.waypoints = waypointsModel.waypoints;
+    this.waypoints = waypointsModel.getWaypoints();
+    this.#currentSortType = sorts[0].name;
+    this.#sortWaypoints(sorts[0].name);
   }
 
   init() {
-    render(new SortView({sorts: this.#sorts}), this.#eventContainer);
+    render(new SortView({sorts: this.#sorts, onChange: this.#handleSortTypeChange}), this.#eventContainer);
     render(this.#eventListContainer, this.#eventContainer);
     this.waypoints.forEach((waypoint) => this.#renderWaypoint(waypoint));
   }
@@ -41,5 +44,24 @@ export default class EventPresenter {
     });
     waypointPresenter.init(waypoint);
     this.#waypointPresenters.push(waypointPresenter);
+  }
+
+  #handleSortTypeChange = (sortType) => {
+    if (sortType === this.#currentSortType) {
+      return;
+    }
+    this.#sortWaypoints(sortType);
+    this.#deleteWaypoints();
+    this.waypoints.forEach((waypoint) => this.#renderWaypoint(waypoint));
+  };
+
+  #sortWaypoints(sortType) {
+    this.#sorts.find((sort) => sort.name === sortType).getPoints(this.waypoints);
+    this.#currentSortType = sortType;
+  }
+
+  #deleteWaypoints() {
+    this.#waypointPresenters.forEach((waypoint) => waypoint.destroy());
+    this.#waypointPresenters = [];
   }
 }

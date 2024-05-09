@@ -5,7 +5,7 @@ function createSortingItemTemplate(sorting, isChecked) {
 
   return (`
     <div class="trip-sort__item  trip-sort__item--${name}">
-        <input id="sort-${name}" class="trip-sort__input visually-hidden" type="radio" name="trip-sort" value="sort-${name}" ${isChecked ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
+        <input id="sort-${name}" class="trip-sort__input visually-hidden" type="radio" data-sort-type="${name}" name="trip-sort" value="sort-${name}" ${isChecked ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
         <label class="trip-sort__btn" for="sort-${name}">${name}</label>
     </div>
   `);
@@ -13,7 +13,7 @@ function createSortingItemTemplate(sorting, isChecked) {
 
 function createSortTemplate(sortingItems) {
   const SORTING_ITEM_TEMPLATE = sortingItems
-    .map((sorting, index) => createSortingItemTemplate(sorting, index === 0)) // TODO заменить условие
+    .map((sorting, index) => createSortingItemTemplate(sorting, index === 0))
     .join('');
 
   return (`
@@ -25,13 +25,23 @@ function createSortTemplate(sortingItems) {
 
 export default class SortView extends AbstractView {
   #sorts;
+  #handleTypeChange;
 
-  constructor({sorts}) {
+  constructor({sorts, onChange}) {
     super();
     this.#sorts = sorts;
+    this.#handleTypeChange = onChange;
+
+    this.element.addEventListener('click', this.#changeTypeHandler);
   }
 
   get template() {
     return createSortTemplate(this.#sorts);
   }
+
+  #changeTypeHandler = (evt) => {
+    if(evt.target.classList.contains('trip-sort__input')) {
+      this.#handleTypeChange(evt.target.dataset.sortType);
+    }
+  };
 }

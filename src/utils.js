@@ -46,11 +46,11 @@ const filters = {
 };
 
 const sorts = {
-  [SORTING_TYPES.DAY]: (points) => points.filter((point) => point),
-  [SORTING_TYPES.EVENT]: (points) => points.filter((point) => point),
-  [SORTING_TYPES.TIME]: (points) => points.filter((point) => point),
-  [SORTING_TYPES.PRICE]: (points) => points.filter((point) => point),
-  [SORTING_TYPES.OFFERS]: (points) => points.filter((point) => point),
+  [SORTING_TYPES.DAY]: (points) => points.sort((pointA, pointB) => new Date(pointA.dateFrom) - new Date(pointB.dateFrom)),
+  [SORTING_TYPES.EVENT]: (points) => points,
+  [SORTING_TYPES.TIME]: (points) => points.sort((pointA, pointB) => countDuration(pointB.dateFrom, pointB.dateTo) - countDuration(pointA.dateFrom, pointA.dateTo)),
+  [SORTING_TYPES.PRICE]: (points) => points.sort((pointA, pointB) => pointB.price - pointA.price),
+  [SORTING_TYPES.OFFERS]: (points) => points,
 };
 
 

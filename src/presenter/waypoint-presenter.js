@@ -79,4 +79,9 @@ export default class WaypointPresenter {
   #handleFavoriteClick = () => {
     this.#onChange({...this.#waypoint, isFavorite: !this.#waypoint.isFavorite});
   };
+
+  destroy() {
+    remove(this.#waypointComponent);
+    remove(this.#editComponent);
+  }
 }
