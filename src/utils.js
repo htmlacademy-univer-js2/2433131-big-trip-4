@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { FILTER_TYPE, SORTING_TYPES } from './const';
+import {FILTER_TYPE, SORTING_TYPES} from './const';
 
 function getRandomArrayElement(items) {
   return items[Math.floor(Math.random() * items.length)];
@@ -38,6 +38,32 @@ function formatDuration(minutes) {
   return result;
 }
 
+function stringToDate(str, format) {
+  const normalized = str.replace(/[^a-zA-Z0-9]/g, '-');
+  const normalizedFormat = format.toLowerCase().replace(/[^a-zA-Z0-9]/g, '-');
+  const formatItems = normalizedFormat.split('-');
+  const dateItems = normalized.split('-');
+
+  const monthIndex = formatItems.indexOf('mm');
+  const dayIndex = formatItems.indexOf('dd');
+  const yearIndex = formatItems.indexOf('yy');
+  const hourIndex = formatItems.indexOf('hh');
+  const minutesIndex = formatItems.indexOf('ii');
+  const secondsIndex = formatItems.indexOf('ss');
+
+  const today = new Date();
+
+  const year = yearIndex > -1 ? parseInt(`20${dateItems[yearIndex]}`, 10) : today.getFullYear();
+  const month = monthIndex > -1 ? dateItems[monthIndex] - 1 : today.getMonth() - 1;
+  const day = dayIndex > -1 ? dateItems[dayIndex] : today.getDate();
+
+  const hour = hourIndex > -1 ? dateItems[hourIndex] : today.getHours();
+  const minute = minutesIndex > -1 ? dateItems[minutesIndex] : today.getMinutes();
+  const second = secondsIndex > -1 ? dateItems[secondsIndex] : today.getSeconds();
+
+  return new Date(year, month, day, hour, minute, second);
+}
+
 const filters = {
   [FILTER_TYPE.EVERYTHING]: (points) => points.filter((point) => point),
   [FILTER_TYPE.FUTURE]: (points) => points.filter((point) => point),
@@ -60,6 +86,7 @@ export {
   humanizeWaypointDueDate,
   getRandomInt,
   countDuration,
-  formatDuration
+  formatDuration,
+  stringToDate
 };
-export { filters, sorts };
+export {filters, sorts};
