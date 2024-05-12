@@ -1,11 +1,12 @@
-import { humanizeWaypointDueDate } from '../utils.js';
-import { DATE_FORMAT_EDIT, DESTINATIONS, OFFERS } from '../const.js';
-import AbstractView from '../framework/view/abstract-view.js';
+import {humanizeWaypointDueDate, stringToDate} from '../utils.js';
+import {DATE_FORMAT_EDIT, DESTINATIONS, OFFERS} from '../const.js';
+import AbstractStatefulView from '../framework/view/abstract-stateful-view';
+import dayjs from 'dayjs';
 
-function getEventOffer ({id, title, price, isChecked}) {
+function getEventOffer({id, title, price, isChecked}) {
   return `
     <div class="event__offer-selector">
-      <input class="event__offer-checkbox  visually-hidden" id="event-offer-${id}" type="checkbox" name="event-offer-${id}" ${isChecked ? 'checked' : ''}>
+      <input class="event__offer-checkbox  visually-hidden" id="event-offer-${id}" type="checkbox" name="event-offer-${id}" data-offer-id="${id}" ${isChecked ? 'checked' : ''}>
       <label class="event__offer-label" for="event-offer-${id}">
         <span class="event__offer-title">${title}</span>
         &plus;&euro;&nbsp;
@@ -15,7 +16,7 @@ function getEventOffer ({id, title, price, isChecked}) {
   `;
 }
 
-function getEventOffers (checkedOffers, type) {
+function getEventOffers(checkedOffers, type) {
   let result = '';
   for (const offer of OFFERS.find((findOffer) => findOffer.type === type).offers) {
     result += getEventOffer({...offer, isChecked: checkedOffers.includes(offer.id)});
@@ -23,7 +24,7 @@ function getEventOffers (checkedOffers, type) {
   return result;
 }
 
-function getEventOfferType (n) {
+function getEventOfferType(n) {
   return `
     <div class="event__type-item">
     <input id="event-type-${OFFERS[n].type}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${OFFERS[n].type}">
@@ -32,7 +33,7 @@ function getEventOfferType (n) {
   `;
 }
 
-function getEventOfferTypes () {
+function getEventOfferTypes() {
   let result = '';
   for (let i = 0; i <= OFFERS.length - 1; i++) {
     result += getEventOfferType(i);
@@ -48,7 +49,7 @@ function getDestinations() {
   return result;
 }
 
-function createEditingFormTemplate({type, destination, offers, price, dateFrom, dateTo }) {
+function createEditingFormTemplate({type, destination, offers, price, dateFrom, dateTo}) {
   const destinationObject = DESTINATIONS.find((dest) => dest.id === destination);
 
   return `
@@ -122,23 +123,111 @@ function createEditingFormTemplate({type, destination, offers, price, dateFrom, 
   `;
 }
 
-export default class EditingFormView extends AbstractView {
+export default class EditingFormView extends AbstractStatefulView {
   #onFormSubmit;
+  #onClose;
+  #destinations;
 
-  constructor({waypoint, onFormSubmit}) {
+  constructor({waypoint, onFormSubmit, onClose}) {
     super();
-    this.editingForm = waypoint;
+    this._state = waypoint;
+    this.editingForm = Object.assign({}, waypoint);
     this.#onFormSubmit = onFormSubmit;
+    this.#onClose = onClose;
+    this.#destinations = DESTINATIONS; // TODO передавать извне
 
-    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#editClickHandler);
+    this._restoreHandlers();
   }
 
   get template() {
-    return createEditingFormTemplate(this.editingForm);
+    return createEditingFormTemplate(this._state);
   }
 
-  #editClickHandler = (event) => {
+  reset(waypoint) {
+    waypoint = this.editingForm;
+    this.updateElement(waypoint);
+  }
+
+  #closeFormHandler = (event) => {
     event.preventDefault();
-    this.#onFormSubmit();
+    this.#onClose();
   };
+
+  #submitFormHandler = (evt) => {
+    evt.preventDefault();
+    this.#onFormSubmit(this._state);
+  };
+
+  #changeTypeHandler = (evt) => {
+    evt.preventDefault();
+    this._state.type = evt.target.value;
+    this.updateElement({
+      type: this._state.type,
+    });
+  };
+
+  #changeDestinationHandler = (evt) => {
+    evt.preventDefault();
+    if (this.#destinations.find((destination) => destination.name === evt.target.value)) {
+      this._state.destination = this.#destinations.find((destination) => destination.name === evt.target.value).id;
+      this.updateElement({
+        destination: this._state.destination,
+      });
+    }
+  };
+
+  #changePriceHandler = (evt) => {
+    evt.preventDefault();
+    this._state.price = evt.target.value;
+    this.updateElement({
+      price: this._state.price,
+    });
+  };
+
+  #changeStartTimeHandler = (event) => {
+    event.preventDefault();
+    const dateValue = `${event.target.value}`;
+    const data = stringToDate(dateValue, 'dd/mm/yy hh:ii');
+    this._state.dateFrom = dayjs(data).format('YYYY-MM-DDTHH:mm:ss');
+    this.updateElement({
+      dateFrom: this._state.dateFrom,
+    });
+  };
+
+  #changeEndTimeHandler = (event) => {
+    event.preventDefault();
+    const dateValue = `${event.target.value}`;
+    const data = stringToDate(dateValue, 'dd/mm/yy hh:ii');
+    this._state.dateTo = dayjs(data).format('YYYY-MM-DDTHH:mm:ss');
+    this.updateElement({
+      dateTo: this._state.dateTo,
+    });
+  };
+
+  #changeOffersHandler = (event) => {
+    event.preventDefault();
+    const offers = [];
+    this.element.querySelectorAll('.event__offer-checkbox:checked').forEach((element) => {
+      offers.push(element.dataset.offerId);
+    });
+    this._state.offers = offers;
+    this.updateElement({
+      offers: this._state.offers,
+    });
+  };
+
+  _restoreHandlers() {
+    this.element.querySelector('.event--edit').addEventListener('submit', this.#submitFormHandler);
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#closeFormHandler);
+    this.element.querySelectorAll('.event__type-input').forEach((element) => {
+      element.addEventListener('click', this.#changeTypeHandler);
+    });
+    this.element.querySelector('.event__input--destination').addEventListener('input', this.#changeDestinationHandler);
+    this.element.querySelector('.event__input--price').addEventListener('change', this.#changePriceHandler);
+    this.element.querySelector('input[name="event-start-time"]').addEventListener('change', this.#changeStartTimeHandler);
+    this.element.querySelector('input[name="event-end-time"]').addEventListener('change', this.#changeEndTimeHandler);
+    this.element.querySelectorAll('.event__offer-checkbox').forEach((el) => {
+      el.addEventListener('click', this.#changeOffersHandler);
+    });
+  }
 }

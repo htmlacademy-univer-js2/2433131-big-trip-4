@@ -36,7 +36,8 @@ export default class WaypointPresenter {
 
     this.#editComponent = new EditingFormView({
       waypoint: waypoint,
-      onFormSubmit: () => this.closeForm()
+      onFormSubmit: (newWaypoint) => this.#handleSaveClick(newWaypoint),
+      onClose: () => this.closeForm(),
     });
 
     if (!prevWaypointComponent || !prevEditComponent) {
@@ -63,6 +64,7 @@ export default class WaypointPresenter {
 
   closeForm() {
     if (this.#isEdit) {
+      this.#editComponent.reset(this.#waypoint);
       replace(this.#waypointComponent, this.#editComponent);
       document.removeEventListener('keydown', this.#escKeyDownHandler);
       this.#isEdit = false;
@@ -72,12 +74,18 @@ export default class WaypointPresenter {
   #escKeyDownHandler = (evt) => {
     if (evt.key === 'Escape') {
       evt.preventDefault();
+      this.#editComponent.reset(this.#waypoint);
       this.closeForm();
     }
   };
 
   #handleFavoriteClick = () => {
     this.#onChange({...this.#waypoint, isFavorite: !this.#waypoint.isFavorite});
+  };
+
+  #handleSaveClick = (waypoint) => {
+    this.#onChange({...waypoint});
+    this.closeForm();
   };
 
   destroy() {
