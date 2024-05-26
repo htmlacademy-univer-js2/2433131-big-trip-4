@@ -3,11 +3,11 @@ const WAYPOINTS_COUNT = 3;
 const PRICES = [100, 150, 200];
 
 const DATES = [
-  {from: '2019-05-24T23:55:43.845Z', to: '2019-05-24T09:13:25.845Z'},
-  {from: '2020-09-05T13:34:15.845Z', to: '2020-09-05T22:05:34.845Z'},
-  {from: '2021-03-12T10:21:12.845Z', to: '2021-03-12T12:18:24.845Z'},
+  {from: '2024-01-24T23:55:43.845Z', to: '2024-03-24T09:13:25.845Z'},
+  {from: '2024-04-05T13:34:15.845Z', to: '2024-06-05T22:05:34.845Z'},
+  {from: '2025-03-12T10:21:12.845Z', to: '2025-03-12T12:18:24.845Z'},
   {from: '2022-01-31T19:54:08.845Z', to: '2022-01-31T21:45:19.845Z'},
-  {from: '2023-06-17T16:15:14.845Z', to: '2023-06-19T02:06:08.845Z'}
+  {from: '2025-06-17T16:15:14.845Z', to: '2025-06-19T02:06:08.845Z'}
 ];
 
 const DESTINATIONS = [
@@ -91,6 +91,18 @@ const EDITING_FORM = {
   offers: [ '1', '2' ],
 };
 
+const ACTIONS = {
+  UPDATE_POINT: 'update',
+  ADD_POINT: 'add',
+  DELETE_POINT: 'delete',
+};
+
+const UPDATE_TYPE = {
+  MINOR: 'MINOR',
+  MAJOR: 'MAJOR',
+};
+
+
 const DATE_FORMAT_EDIT = 'DD/MM/YY hh:mm';
 const DATE_FORMAT_DAY = 'MMM DD';
 const DATE_FORMAT_HOURS = 'hh:mm';
@@ -116,4 +128,4 @@ export { DESTINATIONS };
 export { OFFERS };
 export { DATE_FORMAT_EDIT, DATE_FORMAT_DAY, DATE_FORMAT_HOURS };
 export { EDITING_FORM };
-export { FILTER_TYPE, SORTING_TYPES };
+export { FILTER_TYPE, SORTING_TYPES, ACTIONS, UPDATE_TYPE };

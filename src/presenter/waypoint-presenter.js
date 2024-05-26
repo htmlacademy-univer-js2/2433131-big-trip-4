@@ -1,6 +1,8 @@
 import {remove, render, replace} from '../framework/render.js';
 import EditingFormView from '../view/editing-form-view.js';
 import WaypointView from '../view/waypoint-view.js';
+import {ACTIONS as USER_ACTION, UPDATE_TYPE} from '../const';
+import {getId} from '../utils';
 
 export default class WaypointPresenter {
   #waypoint;
@@ -38,6 +40,7 @@ export default class WaypointPresenter {
       waypoint: waypoint,
       onFormSubmit: (newWaypoint) => this.#handleSaveClick(newWaypoint),
       onClose: () => this.closeForm(),
+      onDelete: this.#handleDeleteClick
     });
 
     if (!prevWaypointComponent || !prevEditComponent) {
@@ -80,11 +83,22 @@ export default class WaypointPresenter {
   };
 
   #handleFavoriteClick = () => {
-    this.#onChange({...this.#waypoint, isFavorite: !this.#waypoint.isFavorite});
+    this.#onChange(
+      USER_ACTION.UPDATE_POINT,
+      UPDATE_TYPE.MINOR,
+      {...this.#waypoint, isFavorite: !this.#waypoint.isFavorite}
+    );
   };
 
   #handleSaveClick = (waypoint) => {
-    this.#onChange({...waypoint});
+    this.#onChange(
+      USER_ACTION.UPDATE_POINT,
+      UPDATE_TYPE.MINOR,
+      {
+        id: getId(),
+        ...waypoint
+      }
+    );
     this.closeForm();
   };
 
@@ -92,4 +106,12 @@ export default class WaypointPresenter {
     remove(this.#waypointComponent);
     remove(this.#editComponent);
   }
+
+  #handleDeleteClick = (point) => {
+    this.#onChange(
+      USER_ACTION.DELETE_POINT,
+      UPDATE_TYPE.MINOR,
+      point,
+    );
+  };
 }
