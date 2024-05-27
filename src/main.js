@@ -7,6 +7,8 @@ import {getMockSorts} from './mock/sort.js';
 import FilterPresenter from './presenter/filter-presenter';
 import FilterModel from './model/filter-model';
 import NewPointButtonView from './view/new-point-button-view';
+import WaypointsService from './service/waypoints-service';
+import {API_SRC, AUTHORIZATION} from './const';
 
 const mainContainer = document.querySelector('.trip-main');
 const filterContainer = document.querySelector('.trip-controls__filters');
@@ -16,7 +18,10 @@ const mockFilters = getMockFilters();
 const mockSorts = getMockSorts();
 
 
-const waypointsModel = new WaypointsModel();
+const waypointsModel = new WaypointsModel({
+  waypointsService: new WaypointsService(API_SRC, AUTHORIZATION)
+});
+
 const filterModel = new FilterModel();
 
 const filterPresenter = new FilterPresenter({
@@ -54,3 +59,4 @@ render(newPointButtonComponent, mainContainer, RenderPosition.BEFOREEND);
 
 filterPresenter.init();
 eventPresenter.init();
+waypointsModel.init();
