@@ -8,6 +8,8 @@ const ACTIONS = {
 };
 
 const UPDATE_TYPE = {
+  INIT: 'INIT',
+  ERROR: 'ERROR',
   PATCH: 'PATCH',
   MINOR: 'MINOR',
   MAJOR: 'MAJOR',
@@ -32,6 +34,23 @@ const SORTING_TYPES = {
   OFFERS: 'offers'
 };
 
+const TIME_LIMITS = {
+  LOWER_LIMIT: 350,
+  UPPER_LIMIT: 1000,
+};
+
+const EVENTS_MESSAGE = {
+  LOADING: 'Loading...',
+  ERROR: 'Failed to load latest route information'
+};
+
+export const FILTER_TYPE_MESSAGE = {
+  EVERYTHING: 'Click New Event to create your first point',
+  FUTURE: 'There are no future events now',
+  PRESENT: 'There are no present events now',
+  PAST: 'There are no past events now',
+};
+
 export {
   API_SRC,
   AUTHORIZATION,
@@ -41,5 +60,7 @@ export {
   FILTER_TYPE,
   SORTING_TYPES,
   ACTIONS,
-  UPDATE_TYPE
+  UPDATE_TYPE,
+  TIME_LIMITS,
+  EVENTS_MESSAGE
 };

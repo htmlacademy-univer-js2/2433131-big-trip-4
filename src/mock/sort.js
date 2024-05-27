@@ -8,4 +8,3 @@ export function getMockSorts() {
     isDisabled: name === SORTING_TYPES.EVENT || name === SORTING_TYPES.OFFERS
   }));
 }
-

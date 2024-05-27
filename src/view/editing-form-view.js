@@ -67,11 +67,23 @@ function createEditingFormTemplate(allDestinations, allOffers, editMode, {
   offers,
   basePrice,
   dateFrom,
-  dateTo
+  dateTo,
+  isDeleting,
+  isLoading
 }) {
   const destinationObject = allDestinations.find((dest) => dest.id === destination);
   const waypointType = type || 'flight';
   const offersList = getEventOffers(allOffers, offers, waypointType);
+
+  const getDeleteLabel = () => {
+    let label = '';
+    if (editMode === ACTIONS.UPDATE_POINT) {
+      label = isDeleting ? 'Deleting...' : 'Delete';
+    } else {
+      label = 'Cancel';
+    }
+    return label;
+  };
 
   return `
     <li class="trip-events__item">
@@ -119,8 +131,8 @@ function createEditingFormTemplate(allDestinations, allOffers, editMode, {
             <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${basePrice || 0}">
           </div>
 
-          <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-          <button class="event__reset-btn" type="reset">${editMode === ACTIONS.UPDATE_POINT ? 'Delete' : 'Cancel'}</button>
+          <button class="event__save-btn  btn  btn--blue" type="submit">${isLoading ? 'Saving...' : 'Save'}</button>
+          <button class="event__reset-btn" type="reset">${getDeleteLabel()}</button>
           <button class="event__rollup-btn" type="button">
             <span class="visually-hidden">Open event</span>
           </button>
@@ -158,7 +170,7 @@ export default class EditingFormView extends AbstractStatefulView {
 
   constructor({offers, destinations, waypoint, onFormSubmit, onClose, onDelete}) {
     super();
-    this._state = waypoint;
+    this._state = this.#parseEventToState(waypoint);
     this.#offers = offers;
     this.#destinations = destinations;
     this.editingForm = Object.assign({}, waypoint);
@@ -171,12 +183,11 @@ export default class EditingFormView extends AbstractStatefulView {
   }
 
   get template() {
-    return createEditingFormTemplate(this.#destinations, this.#offers,this.#editMode, {...this._state});
+    return createEditingFormTemplate(this.#destinations, this.#offers, this.#editMode, {...this._state});
   }
 
   reset(waypoint) {
-    waypoint = this.editingForm;
-    this.updateElement(waypoint);
+    this.updateElement(this.#parseEventToState(waypoint));
   }
 
   removeElement() {
@@ -204,7 +215,7 @@ export default class EditingFormView extends AbstractStatefulView {
 
   #submitFormHandler = (evt) => {
     evt.preventDefault();
-    this.#onFormSubmit(this._state);
+    this.#onFormSubmit(this.#parseStateToEvent(this._state));
   };
 
   #changeTypeHandler = (evt) => {
@@ -225,20 +236,27 @@ export default class EditingFormView extends AbstractStatefulView {
     }
   };
 
-  #changePriceHandler = (evt) => {
-    evt.preventDefault();
-    this._state.basePrice = parseInt(evt.target.value, 10);
+  #changePriceHandler = (event) => {
+    event.preventDefault();
+    this._state.basePrice = parseInt(event.target.value, 10);
     this.updateElement({
       basePrice: this._state.basePrice,
     });
   };
 
+  #keydownPriceHandler = (event) => {
+    if (!/[0-9]/.test(event.key)) {
+      event.preventDefault();
+    }
+  };
+
   #dateFromCloseHandler = ([userDate]) => {
-    this._setState({ dateFrom: userDate });
+    this._setState({dateFrom: userDate});
+    this.#initDatepickerTo();
   };
 
   #dateToCloseHandler = ([userDate]) => {
-    this._setState({ dateTo: userDate });
+    this._setState({dateTo: userDate});
   };
 
   #changeOffersHandler = (event) => {
@@ -253,9 +271,9 @@ export default class EditingFormView extends AbstractStatefulView {
     });
   };
 
-  #deleteFromHandler = (evt) => {
-    evt.preventDefault();
-    this.#onDelete(this.editingForm);
+  #deleteFromHandler = (event) => {
+    event.preventDefault();
+    this.#onDelete(this.#parseStateToEvent(this.editingForm));
   };
 
   #initDatepickerFrom = () => {
@@ -285,6 +303,19 @@ export default class EditingFormView extends AbstractStatefulView {
     );
   };
 
+  #parseEventToState = (event) => ({
+    ...event,
+    isSaving: false,
+    isDeleting: false,
+  });
+
+  #parseStateToEvent = (state) => {
+    const event = {...state};
+    delete event.isSaving;
+    delete event.isDeleting;
+    return event;
+  };
+
   _restoreHandlers() {
     this.element.querySelector('.event--edit').addEventListener('submit', this.#submitFormHandler);
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#closeFormHandler);
@@ -293,6 +324,7 @@ export default class EditingFormView extends AbstractStatefulView {
     });
     this.element.querySelector('.event__input--destination').addEventListener('input', this.#changeDestinationHandler);
     this.element.querySelector('.event__input--price').addEventListener('change', this.#changePriceHandler);
+    this.element.querySelector('.event__input--price').addEventListener('keypress', this.#keydownPriceHandler);
     this.element.querySelectorAll('.event__offer-checkbox').forEach((element) => {
       element.addEventListener('click', this.#changeOffersHandler);
     });

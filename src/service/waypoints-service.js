@@ -3,15 +3,21 @@ import ApiService from '../framework/api-service.js';
 
 export default class WaypointsService extends ApiService {
   get offers() {
-    return this._load({url: 'offers'}).then(ApiService.parseResponse);
+    return this._load({url: 'offers'}).then(ApiService.parseResponse).catch(() => {
+      throw new Error();
+    });
   }
 
   get events() {
-    return this._load({url: 'points'}).then(ApiService.parseResponse);
+    return this._load({url: 'points'}).then(ApiService.parseResponse).catch(() => {
+      throw new Error();
+    });
   }
 
   get destinations() {
-    return this._load({url: 'destinations'}).then(ApiService.parseResponse);
+    return this._load({url: 'destinations'}).then(ApiService.parseResponse).catch(() => {
+      throw new Error();
+    });
   }
 
   async addEvent(event) {
