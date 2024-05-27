@@ -1,12 +1,14 @@
-import {humanizeWaypointDueDate, stringToDate} from '../utils.js';
-import {DATE_FORMAT_EDIT, DESTINATIONS, OFFERS} from '../const.js';
+import {humanizeWaypointDueDate} from '../utils.js';
+import {ACTIONS, DATE_FORMAT_EDIT} from '../const.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view';
-import dayjs from 'dayjs';
+import 'flatpickr/dist/flatpickr.min.css';
+import flatpickr from 'flatpickr';
+import he from 'he';
 
 function getEventOffer({id, title, price, isChecked}) {
   return `
     <div class="event__offer-selector">
-      <input class="event__offer-checkbox  visually-hidden" id="event-offer-${id}" type="checkbox" name="event-offer-${id}" data-offer-id="${id}" ${isChecked ? 'checked' : ''}>
+      <input class="event__offer-checkbox  visually-hidden" id="event-offer-${id}" type="checkbox" name="${he.encode(title)}" data-offer-id="${id}" ${isChecked ? 'checked' : ''}>
       <label class="event__offer-label" for="event-offer-${id}">
         <span class="event__offer-title">${title}</span>
         &plus;&euro;&nbsp;
@@ -16,43 +18,60 @@ function getEventOffer({id, title, price, isChecked}) {
   `;
 }
 
-function getEventOffers(checkedOffers, type) {
+function getEventOffers(allOffers, checkedOffers, type) {
   let result = '';
-  for (const offer of OFFERS.find((findOffer) => findOffer.type === type).offers) {
+  for (const offer of allOffers.find((findOffer) => findOffer.type === type).offers) {
     result += getEventOffer({...offer, isChecked: checkedOffers?.includes(offer.id)});
   }
   return result;
 }
 
-function getEventOfferType(n) {
+function getEventOfferType(allOffers, n) {
   return `
     <div class="event__type-item">
-    <input id="event-type-${OFFERS[n].type}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${OFFERS[n].type}">
-    <label class="event__type-label  event__type-label--${OFFERS[n].type}" for="event-type-${OFFERS[n].type}-1">${OFFERS[n].type}</label>
+    <input id="event-type-${allOffers[n].type}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${he.encode(allOffers[n].type)}">
+    <label class="event__type-label  event__type-label--${allOffers[n].type}" for="event-type-${allOffers[n].type}-1">${allOffers[n].type}</label>
     </div>
   `;
 }
 
-function getEventOfferTypes() {
+function getEventOfferTypes(allOffers) {
   let result = '';
-  for (let i = 0; i <= OFFERS.length - 1; i++) {
-    result += getEventOfferType(i);
+  for (let i = 0; i <= allOffers.length - 1; i++) {
+    result += getEventOfferType(allOffers, i);
   }
   return result;
 }
 
-function getDestinations() {
+function getDestinationPictures(pictures) {
+  return `
+    <div class="event__photos-container">
+      <div class="event__photos-tape">
+        ${pictures.map((picture) => `<img class="event__photo" src=${picture.src} alt=${picture.description}>`)}
+      </div>
+    </div>
+  `;
+}
+
+function getDestinations(destinations) {
   let result = '';
-  for (let i = 0; i <= DESTINATIONS.length - 1; i++) {
-    result += `<option value="${DESTINATIONS[i].name}"></option>`;
+  for (let i = 0; i <= destinations.length - 1; i++) {
+    result += `<option value="${destinations[i].name}"></option>`;
   }
   return result;
 }
 
-function createEditingFormTemplate({formType, type, destination, offers, price, dateFrom, dateTo}) {
-  const destinationObject = DESTINATIONS.find((dest) => dest.id === destination);
+function createEditingFormTemplate(allDestinations, allOffers, editMode, {
+  type,
+  destination,
+  offers,
+  basePrice,
+  dateFrom,
+  dateTo
+}) {
+  const destinationObject = allDestinations.find((dest) => dest.id === destination);
   const waypointType = type || 'flight';
-  const offersList = getEventOffers(offers, waypointType);
+  const offersList = getEventOffers(allOffers, offers, waypointType);
 
   return `
     <li class="trip-events__item">
@@ -69,7 +88,7 @@ function createEditingFormTemplate({formType, type, destination, offers, price, 
               <fieldset class="event__type-group">
                 <legend class="visually-hidden">Event type</legend>
 
-                ${getEventOfferTypes()}
+                ${getEventOfferTypes(allOffers)}
               </fieldset>
             </div>
           </div>
@@ -78,18 +97,18 @@ function createEditingFormTemplate({formType, type, destination, offers, price, 
             <label class="event__label  event__type-output" for="event-destination-1">
               ${waypointType}
             </label>
-            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destinationObject?.name || ''}" list="destination-list-1">
+            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${he.encode(destinationObject?.name || '')}" list="destination-list-1">
             <datalist id="destination-list-1">
-              ${getDestinations()}
+              ${getDestinations(allDestinations)}
             </datalist>
           </div>
 
           <div class="event__field-group  event__field-group--time">
             <label class="visually-hidden" for="event-start-time-1">From</label>
-            <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${humanizeWaypointDueDate(dateFrom, DATE_FORMAT_EDIT)}">
+            <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${he.encode(humanizeWaypointDueDate(dateFrom, DATE_FORMAT_EDIT))}">
             &mdash;
             <label class="visually-hidden" for="event-end-time-1">To</label>
-            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${humanizeWaypointDueDate(dateTo, DATE_FORMAT_EDIT)}">
+            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${he.encode(humanizeWaypointDueDate(dateTo, DATE_FORMAT_EDIT))}">
           </div>
 
           <div class="event__field-group  event__field-group--price">
@@ -97,11 +116,11 @@ function createEditingFormTemplate({formType, type, destination, offers, price, 
               <span class="visually-hidden">Price</span>
               &euro;
             </label>
-            <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${price || 0}">
+            <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${basePrice || 0}">
           </div>
 
           <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-          <button class="event__reset-btn" type="reset">${formType === 'edit' ? 'Delete' : 'Cancel'}</button>
+          <button class="event__reset-btn" type="reset">${editMode === ACTIONS.UPDATE_POINT ? 'Delete' : 'Cancel'}</button>
           <button class="event__rollup-btn" type="button">
             <span class="visually-hidden">Open event</span>
           </button>
@@ -115,8 +134,11 @@ function createEditingFormTemplate({formType, type, destination, offers, price, 
           </section>
 
           <section class="event__section  event__section--destination">
-            <h3 class="event__section-title  event__section-title--destination">${destinationObject ? 'Destination' : ''}</h3>
+            <h3 class="event__section-title  event__section-title--destination">
+                ${(destinationObject?.description || destinationObject?.pictures.length > 0) ? 'Destination' : ''}
+            </h3>
             <p class="event__destination-description">${destinationObject?.description || ''}</p>
+            ${destinationObject?.pictures ? getDestinationPictures(destinationObject?.pictures) : ''}
           </section>
         </section>
       </form>
@@ -127,30 +149,52 @@ function createEditingFormTemplate({formType, type, destination, offers, price, 
 export default class EditingFormView extends AbstractStatefulView {
   #onFormSubmit;
   #onClose;
-  #onDelete;
-  #formType;
+  #offers;
   #destinations;
+  #onDelete;
+  #editMode;
+  #datepickerFrom = null;
+  #datepickerTo = null;
 
-  constructor({formType, waypoint, onFormSubmit, onClose, onDelete}) {
+  constructor({offers, destinations, waypoint, onFormSubmit, onClose, onDelete}) {
     super();
-    this.#formType = formType || 'edit';
     this._state = waypoint;
+    this.#offers = offers;
+    this.#destinations = destinations;
     this.editingForm = Object.assign({}, waypoint);
     this.#onFormSubmit = onFormSubmit;
     this.#onClose = onClose;
     this.#onDelete = onDelete;
-    this.#destinations = DESTINATIONS;
+    this.#editMode = this.#getEditMode();
 
     this._restoreHandlers();
   }
 
   get template() {
-    return createEditingFormTemplate({formType: this.#formType, ...this._state});
+    return createEditingFormTemplate(this.#destinations, this.#offers,this.#editMode, {...this._state});
   }
 
   reset(waypoint) {
     waypoint = this.editingForm;
     this.updateElement(waypoint);
+  }
+
+  removeElement() {
+    super.removeElement();
+
+    if (this.#datepickerFrom) {
+      this.#datepickerFrom.destroy();
+      this.#datepickerFrom = null;
+    }
+
+    if (this.#datepickerTo) {
+      this.#datepickerTo.destroy();
+      this.#datepickerTo = null;
+    }
+  }
+
+  #getEditMode() {
+    return this._state.id ? ACTIONS.UPDATE_POINT : ACTIONS.ADD_POINT;
   }
 
   #closeFormHandler = (event) => {
@@ -183,30 +227,18 @@ export default class EditingFormView extends AbstractStatefulView {
 
   #changePriceHandler = (evt) => {
     evt.preventDefault();
-    this._state.price = evt.target.value;
+    this._state.basePrice = parseInt(evt.target.value, 10);
     this.updateElement({
-      price: this._state.price,
+      basePrice: this._state.basePrice,
     });
   };
 
-  #changeStartTimeHandler = (event) => {
-    event.preventDefault();
-    const dateValue = `${event.target.value}`;
-    const data = stringToDate(dateValue, 'dd/mm/yy hh:ii');
-    this._state.dateFrom = dayjs(data).format('YYYY-MM-DDTHH:mm:ss');
-    this.updateElement({
-      dateFrom: this._state.dateFrom,
-    });
+  #dateFromCloseHandler = ([userDate]) => {
+    this._setState({ dateFrom: userDate });
   };
 
-  #changeEndTimeHandler = (event) => {
-    event.preventDefault();
-    const dateValue = `${event.target.value}`;
-    const data = stringToDate(dateValue, 'dd/mm/yy hh:ii');
-    this._state.dateTo = dayjs(data).format('YYYY-MM-DDTHH:mm:ss');
-    this.updateElement({
-      dateTo: this._state.dateTo,
-    });
+  #dateToCloseHandler = ([userDate]) => {
+    this._setState({ dateTo: userDate });
   };
 
   #changeOffersHandler = (event) => {
@@ -221,10 +253,36 @@ export default class EditingFormView extends AbstractStatefulView {
     });
   };
 
-
   #deleteFromHandler = (evt) => {
     evt.preventDefault();
     this.#onDelete(this.editingForm);
+  };
+
+  #initDatepickerFrom = () => {
+    this.#datepickerFrom = flatpickr(
+      this.element.querySelector('#event-start-time-1'),
+      {
+        ['time_24hr']: true,
+        dateFormat: DATE_FORMAT_EDIT,
+        defaultDate: this._state.dateFrom,
+        enableTime: true,
+        onChange: this.#dateFromCloseHandler,
+      }
+    );
+  };
+
+  #initDatepickerTo = () => {
+    this.#datepickerTo = flatpickr(
+      this.element.querySelector('#event-end-time-1'),
+      {
+        ['time_24hr']: true,
+        dateFormat: 'd/m/y H:i',
+        defaultDate: this._state.dateTo,
+        minDate: this.#datepickerFrom.selectedDates[0],
+        enableTime: true,
+        onChange: this.#dateToCloseHandler,
+      }
+    );
   };
 
   _restoreHandlers() {
@@ -235,11 +293,12 @@ export default class EditingFormView extends AbstractStatefulView {
     });
     this.element.querySelector('.event__input--destination').addEventListener('input', this.#changeDestinationHandler);
     this.element.querySelector('.event__input--price').addEventListener('change', this.#changePriceHandler);
-    this.element.querySelector('input[name="event-start-time"]').addEventListener('change', this.#changeStartTimeHandler);
-    this.element.querySelector('input[name="event-end-time"]').addEventListener('change', this.#changeEndTimeHandler);
     this.element.querySelectorAll('.event__offer-checkbox').forEach((element) => {
       element.addEventListener('click', this.#changeOffersHandler);
     });
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#deleteFromHandler);
+
+    this.#initDatepickerFrom();
+    this.#initDatepickerTo();
   }
 }

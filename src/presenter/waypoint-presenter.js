@@ -2,9 +2,11 @@ import {remove, render, replace} from '../framework/render.js';
 import EditingFormView from '../view/editing-form-view.js';
 import WaypointView from '../view/waypoint-view.js';
 import {ACTIONS as USER_ACTION, UPDATE_TYPE} from '../const';
-import {getId} from '../utils';
+import {isEscape} from '../utils';
 
 export default class WaypointPresenter {
+  #destinations;
+  #offers;
   #waypoint;
   #waypointComponent;
   #editComponent;
@@ -13,8 +15,10 @@ export default class WaypointPresenter {
   #isEdit;
   #containerElement;
 
-  constructor({waypoint, closeAllEditForms, onChange, containerElement}) {
+  constructor({destinations, offers, waypoint, closeAllEditForms, onChange, containerElement}) {
     this.id = waypoint.id;
+    this.#destinations = destinations;
+    this.#offers = offers;
     this.#waypoint = waypoint;
     this.#closeAllEditForms = closeAllEditForms;
     this.#onChange = onChange;
@@ -31,12 +35,16 @@ export default class WaypointPresenter {
     const prevEditComponent = this.#editComponent;
 
     this.#waypointComponent = new WaypointView({
+      destinations: this.#destinations,
+      offers: this.#offers,
       waypoint: waypoint,
       onEditClick: () => this.openForm(),
       onFavoriteClick: () => this.#handleFavoriteClick()
     });
 
     this.#editComponent = new EditingFormView({
+      offers: this.#offers,
+      destinations: this.#destinations,
       waypoint: waypoint,
       onFormSubmit: (newWaypoint) => this.#handleSaveClick(newWaypoint),
       onClose: () => this.closeForm(),
@@ -75,7 +83,7 @@ export default class WaypointPresenter {
   }
 
   #escKeyDownHandler = (evt) => {
-    if (evt.key === 'Escape') {
+    if (isEscape(evt.key)) {
       evt.preventDefault();
       this.#editComponent.reset(this.#waypoint);
       this.closeForm();
@@ -94,10 +102,7 @@ export default class WaypointPresenter {
     this.#onChange(
       USER_ACTION.UPDATE_POINT,
       UPDATE_TYPE.MINOR,
-      {
-        id: getId(),
-        ...waypoint
-      }
+      waypoint
     );
     this.closeForm();
   };
