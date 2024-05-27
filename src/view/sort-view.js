@@ -42,7 +42,7 @@ export default class SortView extends AbstractView {
   }
 
   #changeTypeHandler = (evt) => {
-    if(evt.target.classList.contains('trip-sort__input')) {
+    if (evt.target.classList.contains('trip-sort__input')) {
       this.#handleTypeChange(evt.target.dataset.sortType);
     }
   };

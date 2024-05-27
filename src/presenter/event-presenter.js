@@ -41,6 +41,8 @@ export default class EventPresenter {
 
   createWaypoint() {
     this.#newPointPresenter = new NewWaypointPresenter({
+      destinations: this.waypointsModel.getDestinations(),
+      offers: this.waypointsModel.getOffers(),
       pointListContainer: this.#eventListContainer.element,
       onDataChange: this.#handleWaypointChange,
       onDestroy: this.#onNewPointDestroy,
@@ -91,6 +93,8 @@ export default class EventPresenter {
   #renderWaypoint(waypoint) {
     const waypointPresenter = new WaypointPresenter({
       waypoint,
+      destinations: this.waypointsModel.getDestinations(),
+      offers: this.waypointsModel.getOffers(),
       containerElement: this.#eventListContainer.element,
       closeAllEditForms: () => this.#closeAllEditForms(),
       onChange: this.#handleWaypointChange
@@ -128,8 +132,11 @@ export default class EventPresenter {
     this.renderWaypoints();
   }
 
-  #handleModelEvent = (updateType) => {
+  #handleModelEvent = (updateType, data) => {
     switch (updateType) {
+      case UPDATE_TYPE.PATCH:
+        this.#waypointPresenters.get(data.id).init(data);
+        break;
       case UPDATE_TYPE.MINOR:
         this.reset();
         this.renderWaypoints();

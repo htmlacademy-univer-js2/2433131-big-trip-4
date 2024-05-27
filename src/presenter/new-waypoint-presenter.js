@@ -1,15 +1,20 @@
 import {remove, render, RenderPosition} from '../framework/render.js';
 import {ACTIONS as USER_ACTION, UPDATE_TYPE} from '../const';
 import EditingFormView from '../view/editing-form-view';
+import {isEscape} from '../utils';
 
 export default class NewWaypointPresenter {
+  #offers;
+  #destinations;
   #pointListContainer;
   #newWaypointComponent = null;
   #handleDataChange;
   #handleDestroy;
   #closeAllEditForms;
 
-  constructor({pointListContainer, onDataChange, onDestroy, closeAllEditForms}) {
+  constructor({offers, destinations, pointListContainer, onDataChange, onDestroy, closeAllEditForms}) {
+    this.#offers = offers;
+    this.#destinations = destinations;
     this.#handleDataChange = onDataChange;
     this.#handleDestroy = onDestroy;
     this.#pointListContainer = pointListContainer;
@@ -24,8 +29,9 @@ export default class NewWaypointPresenter {
     this.#closeAllEditForms();
 
     this.#newWaypointComponent = new EditingFormView({
-      formType: 'create',
-      waypoint: {type: 'flight', destination: '', price: '0', offers: []},
+      offers: this.#offers,
+      destinations: this.#destinations,
+      waypoint: {type: 'flight', destination: '', basePrice: 0, offers: []},
       onFormSubmit: (newWaypoint) => this.#handleSaveClick(newWaypoint),
       onClose: () => this.#handleCancelClick(),
       onDelete: this.#handleCancelClick
@@ -48,15 +54,11 @@ export default class NewWaypointPresenter {
     document.removeEventListener('keydown', this.#escKeyDownHandler);
   }
 
-  #handleSaveClick = (point) => {
-    this.#handleDataChange(
-      USER_ACTION.ADD_POINT,
-      UPDATE_TYPE.MAJOR,
-      {
-        id: Date.now().toString(36) + Math.random().toString(36).slice(2),
-        ...point
-      },
-    );
+  #handleSaveClick = (waypoint) => {
+    this.#handleDataChange(USER_ACTION.ADD_POINT, UPDATE_TYPE.MAJOR, {
+      ...waypoint,
+      isFavorite: false
+    });
     this.destroy();
   };
 
@@ -65,7 +67,7 @@ export default class NewWaypointPresenter {
   };
 
   #escKeyDownHandler = (evt) => {
-    if (evt.key === 'Esc' || evt.key === 'Escape') {
+    if (isEscape(evt.key)) {
       evt.preventDefault();
       this.destroy();
     }

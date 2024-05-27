@@ -1,9 +1,9 @@
-import { countDuration, humanizeWaypointDueDate, formatDuration } from '../utils.js';
-import { DATE_FORMAT_DAY, DATE_FORMAT_HOURS, DESTINATIONS, OFFERS } from '../const.js';
+import {countDuration, formatDuration, humanizeWaypointDueDate} from '../utils.js';
+import {DATE_FORMAT_DAY, DATE_FORMAT_HOURS} from '../const.js';
 import AbstractView from '../framework/view/abstract-view.js';
 
 
-function createOffer ({title, price}) {
+function createOffer({title, price}) {
   return `
     <li class="event__offer">
       <span class="event__offer-title">${title}</span>
@@ -13,13 +13,21 @@ function createOffer ({title, price}) {
   `;
 }
 
-function createOffers (offers) {
+function createOffers(offers) {
   return Array.from(offers, createOffer);
 }
 
-function createWaypointTemplate({type, destination, offers, price, dateFrom, dateTo, isFavorite}) {
-  const destinationObject = DESTINATIONS.find((dest) => dest.id === destination);
-  const offersObject = OFFERS.find((offer) => offer.type === type)?.offers.filter((offer) => offers.includes(offer.id));
+function createWaypointTemplate(destinations, allOffers, {
+  type,
+  destination,
+  offers,
+  basePrice,
+  dateFrom,
+  dateTo,
+  isFavorite
+}) {
+  const destinationObject = destinations.find((dest) => dest.id === destination);
+  const offersObject = allOffers.find((offer) => offer.type === type)?.offers.filter((offer) => offers.includes(offer.id));
 
   const favoriteClassName = isFavorite
     ? 'event__favorite-btn--active'
@@ -42,11 +50,11 @@ function createWaypointTemplate({type, destination, offers, price, dateFrom, dat
           <p class="event__duration">${formatDuration(countDuration(dateFrom, dateTo))}</p>
         </div>
         <p class="event__price">
-          &euro;&nbsp;<span class="event__price-value">${price}</span>
+          &euro;&nbsp;<span class="event__price-value">${basePrice}</span>
         </p>
         <h4 class="visually-hidden">Offers:</h4>
         <ul class="event__selected-offers">
-          ${createOffers(offersObject).join('')}
+          ${offersObject ? createOffers(offersObject).join('') : ''}
         </ul>
         <button class="event__favorite-btn ${favoriteClassName}" type="button">
           <span class="visually-hidden">Add to favorite</span>
@@ -65,9 +73,13 @@ function createWaypointTemplate({type, destination, offers, price, dateFrom, dat
 export default class WaypointView extends AbstractView {
   #handleEditClick;
   #handleFavoriteClick;
+  #destinations;
+  #offers;
 
-  constructor({waypoint, onEditClick, onFavoriteClick}) {
+  constructor({destinations, offers, waypoint, onEditClick, onFavoriteClick}) {
     super();
+    this.#destinations = destinations;
+    this.#offers = offers;
     this.waypoint = waypoint;
     this.#handleEditClick = onEditClick;
     this.#handleFavoriteClick = onFavoriteClick;
@@ -77,7 +89,7 @@ export default class WaypointView extends AbstractView {
   }
 
   get template() {
-    return createWaypointTemplate(this.waypoint);
+    return createWaypointTemplate(this.#destinations, this.#offers, this.waypoint);
   }
 
   #editClickHandler = (event) => {
