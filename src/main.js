@@ -1,5 +1,4 @@
 import {render, RenderPosition} from './framework/render.js';
-import InfoView from './view/info-view.js';
 import WaypointsListPresenter from './presenter/waypoints-list-presenter.js';
 import WaypointsModel from './model/waypoint-model.js';
 import {getMockFilters} from './mock/filter.js';
@@ -17,7 +16,6 @@ const eventContainer = document.querySelector('.trip-events');
 const mockFilters = getMockFilters();
 const mockSorts = getMockSorts();
 
-
 const waypointsModel = new WaypointsModel({
   waypointsService: new WaypointsService(API_SRC, AUTHORIZATION)
 });
@@ -27,6 +25,7 @@ const filterModel = new FilterModel();
 const filterPresenter = new FilterPresenter({
   filterContainer,
   filterModel,
+  waypointsModel,
   filters: mockFilters
 });
 
@@ -39,6 +38,7 @@ function handleNewPointFormClose() {
 }
 
 const eventPresenter = new WaypointsListPresenter({
+  mainContainer,
   eventContainer,
   waypointsModel,
   filterModel,
@@ -53,8 +53,6 @@ function handleNewPointButtonClick() {
   newPointButtonComponent.element.disabled = true;
 }
 
-
-render(new InfoView(), mainContainer, RenderPosition.AFTERBEGIN);
 render(newPointButtonComponent, mainContainer, RenderPosition.BEFOREEND);
 
 filterPresenter.init();

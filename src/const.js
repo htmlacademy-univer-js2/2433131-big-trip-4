@@ -1,5 +1,5 @@
 const API_SRC = 'https://23.objects.htmlacademy.pro/big-trip';
-const AUTHORIZATION = 'Basic awdaf5g34123csdrh56w2r5';
+const AUTHORIZATION = 'Basic awdaf5g34123csdrh56w2r51';
 
 const ACTIONS = {
   UPDATE_POINT: 'update',

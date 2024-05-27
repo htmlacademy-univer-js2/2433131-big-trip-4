@@ -13,11 +13,15 @@ import {
 import NewWaypointPresenter from './new-waypoint-presenter';
 import LoadingView from '../view/loading-view';
 import UiBlocker from '../framework/ui-blocker/ui-blocker';
+import {getRoute, getTotalPrice} from '../utils';
+import InfoView from '../view/info-view';
 
 export default class WaypointsListPresenter {
   #eventListContainer = new EventListView();
   #waypointPresenters = [];
   #eventContainer;
+  #mainContainer;
+  #infoComponent;
   #sorts;
   #filters;
   #currentSortType;
@@ -36,7 +40,8 @@ export default class WaypointsListPresenter {
     upperLimit: TIME_LIMITS.UPPER_LIMIT
   });
 
-  constructor({eventContainer, waypointsModel, filterModel, sorts, filters, onNewPointDestroy}) {
+  constructor({mainContainer, eventContainer, waypointsModel, filterModel, sorts, filters, onNewPointDestroy}) {
+    this.#mainContainer = mainContainer;
     this.#eventContainer = eventContainer;
     this.#sorts = sorts;
     this.#filters = filters;
@@ -94,13 +99,23 @@ export default class WaypointsListPresenter {
       onChange: this.#handleSortTypeChange
     });
 
-    render(
-      this.#sortsComponent,
-      this.#eventContainer,
-      RenderPosition.AFTERBEGIN
-    );
-
+    this.#renderInfo();
+    render(this.#sortsComponent, this.#eventContainer, RenderPosition.AFTERBEGIN);
     filteredPoints.forEach((waypoint) => this.#renderWaypoint(waypoint));
+  }
+
+  #renderInfo() {
+    const route = getRoute(
+      this.#sortWaypoints(SORTING_TYPES.DAY, this.waypointsModel.getWaypoints()),
+      this.waypointsModel.destinations
+    );
+    this.#infoComponent = new InfoView({
+      route: route.route,
+      routeDates: route.routeDates,
+      totalPrice: getTotalPrice(this.waypointsModel.getWaypoints(), this.waypointsModel.offers),
+    });
+
+    render(this.#infoComponent, this.#mainContainer, RenderPosition.AFTERBEGIN);
   }
 
   reset() {
@@ -113,6 +128,10 @@ export default class WaypointsListPresenter {
 
     if (this.#sortsComponent) {
       remove(this.#sortsComponent);
+    }
+
+    if (this.#infoComponent) {
+      remove(this.#infoComponent);
     }
 
     if (this.#emptyComponent) {
@@ -192,8 +211,9 @@ export default class WaypointsListPresenter {
   };
 
   #sortWaypoints(sortType) {
-    this.#sorts.find((sort) => sort.name === sortType).getPoints(this.waypointsModel.getWaypoints());
+    const sortedWaypoints = this.#sorts.find((sort) => sort.name === sortType).getPoints(this.waypointsModel.getWaypoints());
     this.#currentSortType = sortType;
+    return sortedWaypoints;
   }
 
   #getFilteredWaypoints(waypoints) {
