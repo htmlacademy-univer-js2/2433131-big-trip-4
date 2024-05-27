@@ -25,35 +25,54 @@ function formatDuration(minutes) {
   return result;
 }
 
-function stringToDate(str, format) {
-  const normalized = str.replace(/[^a-zA-Z0-9]/g, '-');
-  const normalizedFormat = format.toLowerCase().replace(/[^a-zA-Z0-9]/g, '-');
-  const formatItems = normalizedFormat.split('-');
-  const dateItems = normalized.split('-');
-
-  const monthIndex = formatItems.indexOf('mm');
-  const dayIndex = formatItems.indexOf('dd');
-  const yearIndex = formatItems.indexOf('yy');
-  const hourIndex = formatItems.indexOf('hh');
-  const minutesIndex = formatItems.indexOf('ii');
-  const secondsIndex = formatItems.indexOf('ss');
-
-  const today = new Date();
-
-  const year = yearIndex > -1 ? parseInt(`20${dateItems[yearIndex]}`, 10) : today.getFullYear();
-  const month = monthIndex > -1 ? dateItems[monthIndex] - 1 : today.getMonth() - 1;
-  const day = dayIndex > -1 ? dateItems[dayIndex] : today.getDate();
-
-  const hour = hourIndex > -1 ? dateItems[hourIndex] : today.getHours();
-  const minute = minutesIndex > -1 ? dateItems[minutesIndex] : today.getMinutes();
-  const second = secondsIndex > -1 ? dateItems[secondsIndex] : today.getSeconds();
-
-  return new Date(year, month, day, hour, minute, second);
-}
-
 function isEscape(key) {
   return key === 'Escape' || key === 'Esc';
 }
+
+export const formatDate = (date, formatPattern) =>
+  date ? dayjs(date).format(formatPattern) : '';
+
+export const getRoute = (events, destinations) => {
+  let route = '';
+  let routeDates = '';
+  const eventsLength = events.length;
+  const firstEvent = events[0];
+  const lastEvent = events[eventsLength - 1];
+
+  routeDates = `
+    ${formatDate(firstEvent.dateFrom, 'DD MMM')}
+    &nbsp;&mdash;&nbsp;
+    ${formatDate(lastEvent.dateTo, 'DD MMM')}
+  `;
+
+  if (eventsLength <= 3) {
+    route = events
+      .map((event) => destinations.find((destination) => destination.id === event.destination).name)
+      .join(' &mdash; ');
+
+    return { route, routeDates };
+  }
+
+  const firstRoutePoint = destinations.find((destination) => destination.id === firstEvent.destination);
+  const lastRoutePoint = destinations.find((destination) => destination.id === lastEvent.destination);
+  route = `${firstRoutePoint.name} &mdash; ... &mdash; ${lastRoutePoint.name}`;
+
+  return { route, routeDates };
+};
+
+export const getOfferById = (offers, type, id) =>
+  offers
+    .find((offer) => offer.type === type)
+    .offers.find((item) => item.id === id);
+
+export const getTotalEventPrice = (event, offers) => event.basePrice +
+  event.offers.reduce(
+    (sum, offer) => sum + getOfferById(offers, event.type, offer).price,
+    0
+  );
+export const getTotalPrice = (events, offers) =>
+  events.reduce((sum, event) => sum + getTotalEventPrice(event, offers), 0);
+
 
 const filters = {
   [FILTER_TYPE.EVERYTHING]: (points) => points.filter((point) => point),
@@ -75,7 +94,6 @@ export {
   humanizeWaypointDueDate,
   countDuration,
   formatDuration,
-  stringToDate,
   isEscape,
   filters,
   sorts
