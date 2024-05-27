@@ -67,7 +67,6 @@ export default class WaypointsModel extends Observable {
       throw new Error('The point doesn\'t exist!');
     }
 
-
     try {
       const response = await this.#waypointsService.updateEvent(update);
       const adaptedWaypoint = this.#adapter(response);

@@ -31,7 +31,7 @@ export default class NewWaypointPresenter {
     this.#newWaypointComponent = new EditingFormView({
       offers: this.#offers,
       destinations: this.#destinations,
-      waypoint: {type: 'flight', destination: '', basePrice: 0, offers: []},
+      waypoint: {type: 'flight', destination: '', basePrice: 0, offers: [], isFavorite: false},
       onFormSubmit: (newWaypoint) => this.#handleSaveClick(newWaypoint),
       onClose: () => this.#handleCancelClick(),
       onDelete: this.#handleCancelClick

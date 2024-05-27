@@ -13,7 +13,7 @@ const UPDATE_TYPE = {
   MAJOR: 'MAJOR',
 };
 
-const DATE_FORMAT_EDIT = 'DD/MM/YY hh:mm';
+const DATE_FORMAT_EDIT = 'd/m/y H:i';
 const DATE_FORMAT_DAY = 'MMM DD';
 const DATE_FORMAT_HOURS = 'hh:mm';
 
