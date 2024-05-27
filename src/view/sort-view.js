@@ -11,9 +11,9 @@ function createSortingItemTemplate(sorting, isChecked) {
   `);
 }
 
-function createSortTemplate(sortingItems) {
+function createSortTemplate(sortingItems, currentSort) {
   const SORTING_ITEM_TEMPLATE = sortingItems
-    .map((sorting, index) => createSortingItemTemplate(sorting, index === 0))
+    .map((sorting) => createSortingItemTemplate(sorting, sorting.name === currentSort))
     .join('');
 
   return (`
@@ -26,17 +26,19 @@ function createSortTemplate(sortingItems) {
 export default class SortView extends AbstractView {
   #sorts;
   #handleTypeChange;
+  #currentSort;
 
-  constructor({sorts, onChange}) {
+  constructor({sorts, onChange, currentSort}) {
     super();
     this.#sorts = sorts;
+    this.#currentSort = currentSort;
     this.#handleTypeChange = onChange;
 
     this.element.addEventListener('click', this.#changeTypeHandler);
   }
 
   get template() {
-    return createSortTemplate(this.#sorts);
+    return createSortTemplate(this.#sorts, this.#currentSort);
   }
 
   #changeTypeHandler = (evt) => {

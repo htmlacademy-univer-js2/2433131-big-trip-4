@@ -10,9 +10,9 @@ function createFilterItemTemplate(filter, isChecked) {
   `);
 }
 
-function createFilterTemplate(filters) {
+function createFilterTemplate(filters, type) {
   const filterItemsTemplate = filters
-    .map((filter, index) => createFilterItemTemplate(filter, index === 0)) // TODO заменить условие
+    .map((filter) => createFilterItemTemplate(filter, type === filter.name))
     .join('');
 
   return (`
@@ -25,13 +25,25 @@ function createFilterTemplate(filters) {
 
 export default class FilterView extends AbstractView {
   #filters;
+  #type;
+  #handleTypeChange;
 
-  constructor({filters}) {
+  constructor({filters, type, onChange}) {
     super();
     this.#filters = filters;
+    this.#type = type;
+    this.#handleTypeChange = onChange;
+
+    this.element.addEventListener('click', this.#typeChangeHandler);
   }
 
   get template() {
-    return createFilterTemplate(this.#filters);
+    return createFilterTemplate(this.#filters, this.#type);
   }
+
+  #typeChangeHandler = (event) => {
+    if (event.target.classList.contains('trip-filters__filter-input')) {
+      this.#handleTypeChange(event.target.value);
+    }
+  };
 }

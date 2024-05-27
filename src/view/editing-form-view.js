@@ -19,7 +19,7 @@ function getEventOffer({id, title, price, isChecked}) {
 function getEventOffers(checkedOffers, type) {
   let result = '';
   for (const offer of OFFERS.find((findOffer) => findOffer.type === type).offers) {
-    result += getEventOffer({...offer, isChecked: checkedOffers.includes(offer.id)});
+    result += getEventOffer({...offer, isChecked: checkedOffers?.includes(offer.id)});
   }
   return result;
 }
@@ -49,8 +49,10 @@ function getDestinations() {
   return result;
 }
 
-function createEditingFormTemplate({type, destination, offers, price, dateFrom, dateTo}) {
+function createEditingFormTemplate({formType, type, destination, offers, price, dateFrom, dateTo}) {
   const destinationObject = DESTINATIONS.find((dest) => dest.id === destination);
+  const waypointType = type || 'flight';
+  const offersList = getEventOffers(offers, waypointType);
 
   return `
     <li class="trip-events__item">
@@ -59,7 +61,7 @@ function createEditingFormTemplate({type, destination, offers, price, dateFrom, 
           <div class="event__type-wrapper">
             <label class="event__type  event__type-btn" for="event-type-toggle-1">
               <span class="visually-hidden">Choose event type</span>
-              <img class="event__type-icon" width="17" height="17" src="img/icons/${type}.png" alt="Event type icon">
+              <img class="event__type-icon" width="17" height="17" src="img/icons/${waypointType}.png" alt="Event type icon">
             </label>
             <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
 
@@ -74,9 +76,9 @@ function createEditingFormTemplate({type, destination, offers, price, dateFrom, 
 
           <div class="event__field-group  event__field-group--destination">
             <label class="event__label  event__type-output" for="event-destination-1">
-              ${type}
+              ${waypointType}
             </label>
-            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destinationObject.name}" list="destination-list-1">
+            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destinationObject?.name || ''}" list="destination-list-1">
             <datalist id="destination-list-1">
               ${getDestinations()}
             </datalist>
@@ -95,27 +97,26 @@ function createEditingFormTemplate({type, destination, offers, price, dateFrom, 
               <span class="visually-hidden">Price</span>
               &euro;
             </label>
-            <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${price}">
+            <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${price || 0}">
           </div>
 
           <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-          <button class="event__reset-btn" type="reset">Delete</button>
+          <button class="event__reset-btn" type="reset">${formType === 'edit' ? 'Delete' : 'Cancel'}</button>
           <button class="event__rollup-btn" type="button">
             <span class="visually-hidden">Open event</span>
           </button>
         </header>
         <section class="event__details">
           <section class="event__section  event__section--offers">
-            <h3 class="event__section-title  event__section-title--offers">Offers</h3>
-
+            <h3 class="event__section-title  event__section-title--offers">${offersList ? 'Offers' : ''}</h3>
             <div class="event__available-offers">
-            ${getEventOffers(offers, type)}
+                ${offersList}
             </div>
           </section>
 
           <section class="event__section  event__section--destination">
-            <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-            <p class="event__destination-description">${destinationObject.description}</p>
+            <h3 class="event__section-title  event__section-title--destination">${destinationObject ? 'Destination' : ''}</h3>
+            <p class="event__destination-description">${destinationObject?.description || ''}</p>
           </section>
         </section>
       </form>
@@ -126,21 +127,25 @@ function createEditingFormTemplate({type, destination, offers, price, dateFrom, 
 export default class EditingFormView extends AbstractStatefulView {
   #onFormSubmit;
   #onClose;
+  #onDelete;
+  #formType;
   #destinations;
 
-  constructor({waypoint, onFormSubmit, onClose}) {
+  constructor({formType, waypoint, onFormSubmit, onClose, onDelete}) {
     super();
+    this.#formType = formType || 'edit';
     this._state = waypoint;
     this.editingForm = Object.assign({}, waypoint);
     this.#onFormSubmit = onFormSubmit;
     this.#onClose = onClose;
-    this.#destinations = DESTINATIONS; // TODO передавать извне
+    this.#onDelete = onDelete;
+    this.#destinations = DESTINATIONS;
 
     this._restoreHandlers();
   }
 
   get template() {
-    return createEditingFormTemplate(this._state);
+    return createEditingFormTemplate({formType: this.#formType, ...this._state});
   }
 
   reset(waypoint) {
@@ -216,6 +221,12 @@ export default class EditingFormView extends AbstractStatefulView {
     });
   };
 
+
+  #deleteFromHandler = (evt) => {
+    evt.preventDefault();
+    this.#onDelete(this.editingForm);
+  };
+
   _restoreHandlers() {
     this.element.querySelector('.event--edit').addEventListener('submit', this.#submitFormHandler);
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#closeFormHandler);
@@ -226,8 +237,9 @@ export default class EditingFormView extends AbstractStatefulView {
     this.element.querySelector('.event__input--price').addEventListener('change', this.#changePriceHandler);
     this.element.querySelector('input[name="event-start-time"]').addEventListener('change', this.#changeStartTimeHandler);
     this.element.querySelector('input[name="event-end-time"]').addEventListener('change', this.#changeEndTimeHandler);
-    this.element.querySelectorAll('.event__offer-checkbox').forEach((el) => {
-      el.addEventListener('click', this.#changeOffersHandler);
+    this.element.querySelectorAll('.event__offer-checkbox').forEach((element) => {
+      element.addEventListener('click', this.#changeOffersHandler);
     });
+    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#deleteFromHandler);
   }
 }

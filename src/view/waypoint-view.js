@@ -19,7 +19,7 @@ function createOffers (offers) {
 
 function createWaypointTemplate({type, destination, offers, price, dateFrom, dateTo, isFavorite}) {
   const destinationObject = DESTINATIONS.find((dest) => dest.id === destination);
-  const offersObject = OFFERS.find((offer) => offer.type === type).offers.filter((offer) => offers.includes(offer.id));
+  const offersObject = OFFERS.find((offer) => offer.type === type)?.offers.filter((offer) => offers.includes(offer.id));
 
   const favoriteClassName = isFavorite
     ? 'event__favorite-btn--active'
@@ -32,7 +32,7 @@ function createWaypointTemplate({type, destination, offers, price, dateFrom, dat
         <div class="event__type">
           <img class="event__type-icon" width="42" height="42" src="img/icons/${type}.png" alt="Event type icon">
         </div>
-        <h3 class="event__title">${type} ${destinationObject.name}</h3>
+        <h3 class="event__title">${type} ${destinationObject?.name}</h3>
         <div class="event__schedule">
           <p class="event__time">
             <time class="event__start-time" datetime="${dateFrom}}">${humanizeWaypointDueDate(dateFrom, DATE_FORMAT_HOURS)}</time>
@@ -46,7 +46,7 @@ function createWaypointTemplate({type, destination, offers, price, dateFrom, dat
         </p>
         <h4 class="visually-hidden">Offers:</h4>
         <ul class="event__selected-offers">
-          ${createOffers(offersObject)}
+          ${createOffers(offersObject).join('')}
         </ul>
         <button class="event__favorite-btn ${favoriteClassName}" type="button">
           <span class="visually-hidden">Add to favorite</span>

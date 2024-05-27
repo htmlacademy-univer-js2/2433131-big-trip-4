@@ -64,11 +64,15 @@ function stringToDate(str, format) {
   return new Date(year, month, day, hour, minute, second);
 }
 
+function getId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
 const filters = {
   [FILTER_TYPE.EVERYTHING]: (points) => points.filter((point) => point),
-  [FILTER_TYPE.FUTURE]: (points) => points.filter((point) => point),
-  [FILTER_TYPE.PRESENT]: (points) => points.filter((point) => point),
-  [FILTER_TYPE.PAST]: (points) => points.filter((point) => point),
+  [FILTER_TYPE.FUTURE]: (points) => points.filter((point) => new Date(point.dateFrom) > new Date()),
+  [FILTER_TYPE.PRESENT]: (points) => points.filter((point) => new Date(point.dateFrom) <= new Date() && new Date() <= new Date(point.dateTo)),
+  [FILTER_TYPE.PAST]: (points) => points.filter((point) => new Date(point.dateTo) < new Date()),
 };
 
 const sorts = {
@@ -87,6 +91,7 @@ export {
   getRandomInt,
   countDuration,
   formatDuration,
-  stringToDate
+  stringToDate,
+  getId
 };
 export {filters, sorts};
