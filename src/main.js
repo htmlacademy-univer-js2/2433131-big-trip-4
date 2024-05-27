@@ -1,6 +1,6 @@
 import {render, RenderPosition} from './framework/render.js';
 import InfoView from './view/info-view.js';
-import EventPresenter from './presenter/event-presenter.js';
+import WaypointsListPresenter from './presenter/waypoints-list-presenter.js';
 import WaypointsModel from './model/waypoint-model.js';
 import {getMockFilters} from './mock/filter.js';
 import {getMockSorts} from './mock/sort.js';
@@ -38,7 +38,7 @@ function handleNewPointFormClose() {
   newPointButtonComponent.element.disabled = false;
 }
 
-const eventPresenter = new EventPresenter({
+const eventPresenter = new WaypointsListPresenter({
   eventContainer,
   waypointsModel,
   filterModel,

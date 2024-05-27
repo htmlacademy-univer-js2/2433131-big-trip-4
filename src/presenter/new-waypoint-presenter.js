@@ -54,12 +54,28 @@ export default class NewWaypointPresenter {
     document.removeEventListener('keydown', this.#escKeyDownHandler);
   }
 
+  setSavingStatus() {
+    this.#newWaypointComponent.updateElement({
+      isSaving: true,
+    });
+  }
+
+  setAbortingStatus() {
+    const resetFormState = () => {
+      this.#newWaypointComponent.updateElement({
+        isSaving: false,
+        isDeleting: false,
+      });
+    };
+
+    this.#newWaypointComponent.shake(resetFormState);
+  }
+
   #handleSaveClick = (waypoint) => {
     this.#handleDataChange(USER_ACTION.ADD_POINT, UPDATE_TYPE.MAJOR, {
       ...waypoint,
       isFavorite: false
     });
-    this.destroy();
   };
 
   #handleCancelClick = () => {

@@ -43,17 +43,18 @@ export default class WaypointsModel extends Observable {
       this.destinations = await this.#waypointsService.destinations;
       this.offers = await this.#waypointsService.offers;
     } catch (err) {
+      this._notify(UPDATE_TYPE.ERROR);
       this.waypoints = [];
     }
 
-    this._notify(UPDATE_TYPE.MAJOR);
+    this._notify(UPDATE_TYPE.INIT);
   }
 
   async addPoint(updateType, update) {
     try {
       const response = await this.#waypointsService.addEvent(update);
       const adaptedWaypoint = this.#adapter(response);
-      this.waypoints = [response, ...this.waypoints];
+      this.waypoints = [adaptedWaypoint, ...this.waypoints];
       this._notify(updateType, adaptedWaypoint);
     } catch (err) {
       throw new Error('Can\'t add event');
@@ -61,7 +62,7 @@ export default class WaypointsModel extends Observable {
   }
 
   async updatePoint(updateType, update) {
-    const index = this.waypoints.findIndex((point) => point.id === update.id);
+    const index = this.waypoints.findIndex((waypoint) => waypoint.id === update.id);
 
     if (index === -1) {
       throw new Error('The point doesn\'t exist!');

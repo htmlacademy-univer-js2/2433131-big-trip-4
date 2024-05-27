@@ -82,6 +82,38 @@ export default class WaypointPresenter {
     }
   }
 
+  setSavingStatus() {
+    if (this.#isEdit) {
+      this.#editComponent.updateElement({
+        isLoading: true,
+      });
+    }
+  }
+
+  setDeletingStatus() {
+    if (this.#isEdit) {
+      this.#editComponent.updateElement({
+        isDeleting: true,
+      });
+    }
+  }
+
+  setAbortingStatus() {
+    if (!this.#isEdit) {
+      this.#waypointComponent.shake();
+      return;
+    }
+
+    const resetFormState = () => {
+      this.#editComponent.updateElement({
+        isLoading: false,
+        isDeleting: false,
+      });
+    };
+
+    this.#editComponent.shake(resetFormState);
+  }
+
   #escKeyDownHandler = (evt) => {
     if (isEscape(evt.key)) {
       evt.preventDefault();
@@ -104,7 +136,6 @@ export default class WaypointPresenter {
       UPDATE_TYPE.MINOR,
       waypoint
     );
-    this.closeForm();
   };
 
   destroy() {
