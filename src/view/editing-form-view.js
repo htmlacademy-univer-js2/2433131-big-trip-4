@@ -159,14 +159,14 @@ function createEditingFormTemplate(allDestinations, allOffers, editMode, {
 }
 
 export default class EditingFormView extends AbstractStatefulView {
+  #datepickerFrom = null;
+  #datepickerTo = null;
   #onFormSubmit;
   #onClose;
   #offers;
   #destinations;
   #onDelete;
   #editMode;
-  #datepickerFrom = null;
-  #datepickerTo = null;
 
   constructor({offers, destinations, waypoint, onFormSubmit, onClose, onDelete}) {
     super();
@@ -204,78 +204,6 @@ export default class EditingFormView extends AbstractStatefulView {
     }
   }
 
-  #getEditMode() {
-    return this._state.id ? ACTIONS.UPDATE_POINT : ACTIONS.ADD_POINT;
-  }
-
-  #closeFormHandler = (event) => {
-    event.preventDefault();
-    this.#onClose();
-  };
-
-  #submitFormHandler = (evt) => {
-    evt.preventDefault();
-    this.#onFormSubmit(this.#parseStateToEvent(this._state));
-  };
-
-  #changeTypeHandler = (evt) => {
-    evt.preventDefault();
-    this._state.type = evt.target.value;
-    this.updateElement({
-      type: this._state.type,
-    });
-  };
-
-  #changeDestinationHandler = (evt) => {
-    evt.preventDefault();
-    if (this.#destinations.find((destination) => destination.name === evt.target.value)) {
-      this._state.destination = this.#destinations.find((destination) => destination.name === evt.target.value).id;
-      this.updateElement({
-        destination: this._state.destination,
-      });
-    }
-  };
-
-  #changePriceHandler = (event) => {
-    event.preventDefault();
-    this._state.basePrice = parseInt(event.target.value, 10);
-    this.updateElement({
-      basePrice: this._state.basePrice,
-    });
-  };
-
-  #keydownPriceHandler = (event) => {
-    if (!/[0-9]/.test(event.key)) {
-      event.preventDefault();
-    }
-  };
-
-  #dateFromCloseHandler = ([userDate]) => {
-    this._setState({dateFrom: userDate});
-    this.#initDatepickerTo();
-  };
-
-  #dateToCloseHandler = ([userDate]) => {
-    this._setState({dateTo: userDate});
-  };
-
-  #changeOffersHandler = (event) => {
-    event.preventDefault();
-    const offers = [];
-    this.element.querySelectorAll('.event__offer-checkbox:checked').forEach((element) => {
-      offers.push(element.dataset.offerId);
-    });
-    this._state.offers = offers;
-    this.updateElement({
-      offers: this._state.offers,
-    });
-  };
-
-  #deleteFromHandler = (event) => {
-    event.preventDefault();
-    this.#onDelete(this.#parseStateToEvent(this.editingForm));
-  };
-
   #initDatepickerFrom = () => {
     this.#datepickerFrom = flatpickr(
       this.element.querySelector('#event-start-time-1'),
@@ -284,7 +212,7 @@ export default class EditingFormView extends AbstractStatefulView {
         dateFormat: DATE_FORMAT_EDIT,
         defaultDate: this._state.dateFrom,
         enableTime: true,
-        onChange: this.#dateFromCloseHandler,
+        onChange: this.#onCloseDateFrom,
       }
     );
   };
@@ -298,7 +226,7 @@ export default class EditingFormView extends AbstractStatefulView {
         defaultDate: this._state.dateTo,
         minDate: this.#datepickerFrom.selectedDates[0],
         enableTime: true,
-        onChange: this.#dateToCloseHandler,
+        onChange: this.#onCloseDateTo,
       }
     );
   };
@@ -317,20 +245,92 @@ export default class EditingFormView extends AbstractStatefulView {
   };
 
   _restoreHandlers() {
-    this.element.querySelector('.event--edit').addEventListener('submit', this.#submitFormHandler);
-    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#closeFormHandler);
+    this.element.querySelector('.event--edit').addEventListener('submit', this.#onSubmit);
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#onCloseForm);
     this.element.querySelectorAll('.event__type-input').forEach((element) => {
-      element.addEventListener('click', this.#changeTypeHandler);
+      element.addEventListener('click', this.#onChangeType);
     });
-    this.element.querySelector('.event__input--destination').addEventListener('input', this.#changeDestinationHandler);
-    this.element.querySelector('.event__input--price').addEventListener('change', this.#changePriceHandler);
-    this.element.querySelector('.event__input--price').addEventListener('keypress', this.#keydownPriceHandler);
+    this.element.querySelector('.event__input--destination').addEventListener('input', this.#onChangeDestination);
+    this.element.querySelector('.event__input--price').addEventListener('change', this.#onChangePrice);
+    this.element.querySelector('.event__input--price').addEventListener('keypress', this.#onKeydownPrice);
     this.element.querySelectorAll('.event__offer-checkbox').forEach((element) => {
-      element.addEventListener('click', this.#changeOffersHandler);
+      element.addEventListener('click', this.#onChangeOffers);
     });
-    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#deleteFromHandler);
+    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#onDeleteForm);
 
     this.#initDatepickerFrom();
     this.#initDatepickerTo();
   }
+
+  #getEditMode() {
+    return this._state.id ? ACTIONS.UPDATE_POINT : ACTIONS.ADD_POINT;
+  }
+
+  #onCloseForm = (event) => {
+    event.preventDefault();
+    this.#onClose();
+  };
+
+  #onSubmit = (evt) => {
+    evt.preventDefault();
+    this.#onFormSubmit(this.#parseStateToEvent(this._state));
+  };
+
+  #onChangeType = (evt) => {
+    evt.preventDefault();
+    this._state.type = evt.target.value;
+    this.updateElement({
+      type: this._state.type,
+    });
+  };
+
+  #onChangeDestination = (evt) => {
+    evt.preventDefault();
+    if (this.#destinations.find((destination) => destination.name === evt.target.value)) {
+      this._state.destination = this.#destinations.find((destination) => destination.name === evt.target.value).id;
+      this.updateElement({
+        destination: this._state.destination,
+      });
+    }
+  };
+
+  #onChangePrice = (event) => {
+    event.preventDefault();
+    this._state.basePrice = parseInt(event.target.value, 10);
+    this.updateElement({
+      basePrice: this._state.basePrice,
+    });
+  };
+
+  #onKeydownPrice = (event) => {
+    if (!/[0-9]/.test(event.key)) {
+      event.preventDefault();
+    }
+  };
+
+  #onChangeOffers = (event) => {
+    event.preventDefault();
+    const offers = [];
+    this.element.querySelectorAll('.event__offer-checkbox:checked').forEach((element) => {
+      offers.push(element.dataset.offerId);
+    });
+    this._state.offers = offers;
+    this.updateElement({
+      offers: this._state.offers,
+    });
+  };
+
+  #onCloseDateFrom = ([userDate]) => {
+    this._setState({dateFrom: userDate});
+    this.#initDatepickerTo();
+  };
+
+  #onCloseDateTo = ([userDate]) => {
+    this._setState({dateTo: userDate});
+  };
+
+  #onDeleteForm = (event) => {
+    event.preventDefault();
+    this.#onDelete(this.#parseStateToEvent(this.editingForm));
+  };
 }

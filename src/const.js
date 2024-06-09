@@ -1,13 +1,13 @@
-const API_SRC = 'https://23.objects.htmlacademy.pro/big-trip';
-const AUTHORIZATION = 'Basic awdaf5g34123csdrh56w2r5';
+export const API_SRC = 'https://23.objects.htmlacademy.pro/big-trip';
+export const AUTHORIZATION = 'Basic awdaf5g34123csdrh56w2r51';
 
-const ACTIONS = {
+export const ACTIONS = {
   UPDATE_POINT: 'update',
   ADD_POINT: 'add',
   DELETE_POINT: 'delete',
 };
 
-const UPDATE_TYPE = {
+export const UPDATE_TYPE = {
   INIT: 'INIT',
   ERROR: 'ERROR',
   PATCH: 'PATCH',
@@ -15,18 +15,18 @@ const UPDATE_TYPE = {
   MAJOR: 'MAJOR',
 };
 
-const DATE_FORMAT_EDIT = 'd/m/y H:i';
-const DATE_FORMAT_DAY = 'MMM DD';
-const DATE_FORMAT_HOURS = 'hh:mm';
+export const DATE_FORMAT_EDIT = 'd/m/y H:i';
+export const DATE_FORMAT_DAY = 'MMM DD';
+export const DATE_FORMAT_HOURS = 'hh:mm';
 
-const FILTER_TYPE = {
+export const FILTER_TYPE = {
   EVERYTHING: 'everything',
   FUTURE: 'future',
   PRESENT: 'present',
   PAST: 'past',
 };
 
-const SORTING_TYPES = {
+export const SORTING_TYPES = {
   DAY: 'day',
   EVENT: 'event',
   TIME: 'time',
@@ -34,12 +34,12 @@ const SORTING_TYPES = {
   OFFERS: 'offers'
 };
 
-const TIME_LIMITS = {
+export const TIME_LIMITS = {
   LOWER_LIMIT: 350,
   UPPER_LIMIT: 1000,
 };
 
-const EVENTS_MESSAGE = {
+export const EVENTS_MESSAGE = {
   LOADING: 'Loading...',
   ERROR: 'Failed to load latest route information'
 };
@@ -49,18 +49,4 @@ export const FILTER_TYPE_MESSAGE = {
   FUTURE: 'There are no future events now',
   PRESENT: 'There are no present events now',
   PAST: 'There are no past events now',
-};
-
-export {
-  API_SRC,
-  AUTHORIZATION,
-  DATE_FORMAT_EDIT,
-  DATE_FORMAT_DAY,
-  DATE_FORMAT_HOURS,
-  FILTER_TYPE,
-  SORTING_TYPES,
-  ACTIONS,
-  UPDATE_TYPE,
-  TIME_LIMITS,
-  EVENTS_MESSAGE
 };

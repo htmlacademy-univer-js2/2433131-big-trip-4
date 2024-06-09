@@ -4,10 +4,10 @@ import EditingFormView from '../view/editing-form-view';
 import {isEscape} from '../utils';
 
 export default class NewWaypointPresenter {
+  #newWaypointComponent = null;
   #offers;
   #destinations;
   #pointListContainer;
-  #newWaypointComponent = null;
   #handleDataChange;
   #handleDestroy;
   #closeAllEditForms;
@@ -19,39 +19,6 @@ export default class NewWaypointPresenter {
     this.#handleDestroy = onDestroy;
     this.#pointListContainer = pointListContainer;
     this.#closeAllEditForms = closeAllEditForms;
-  }
-
-  init() {
-    if (this.#newWaypointComponent !== null) {
-      return;
-    }
-
-    this.#closeAllEditForms();
-
-    this.#newWaypointComponent = new EditingFormView({
-      offers: this.#offers,
-      destinations: this.#destinations,
-      waypoint: {type: 'flight', destination: '', basePrice: 0, offers: [], isFavorite: false},
-      onFormSubmit: (newWaypoint) => this.#handleSaveClick(newWaypoint),
-      onClose: () => this.#handleCancelClick(),
-      onDelete: this.#handleCancelClick
-    });
-
-    render(this.#newWaypointComponent, this.#pointListContainer, RenderPosition.AFTERBEGIN);
-    document.addEventListener('keydown', this.#escKeyDownHandler);
-  }
-
-  destroy() {
-    if (this.#newWaypointComponent === null) {
-      return;
-    }
-
-    this.#handleDestroy();
-
-    remove(this.#newWaypointComponent);
-    this.#newWaypointComponent = null;
-
-    document.removeEventListener('keydown', this.#escKeyDownHandler);
   }
 
   setSavingStatus() {
@@ -71,18 +38,51 @@ export default class NewWaypointPresenter {
     this.#newWaypointComponent.shake(resetFormState);
   }
 
-  #handleSaveClick = (waypoint) => {
+  init() {
+    if (this.#newWaypointComponent !== null) {
+      return;
+    }
+
+    this.#closeAllEditForms();
+
+    this.#newWaypointComponent = new EditingFormView({
+      offers: this.#offers,
+      destinations: this.#destinations,
+      waypoint: {type: 'flight', destination: '', basePrice: 0, offers: [], isFavorite: false},
+      onFormSubmit: (newWaypoint) => this.#onSave(newWaypoint),
+      onClose: () => this.#onCancel(),
+      onDelete: this.#onCancel
+    });
+
+    render(this.#newWaypointComponent, this.#pointListContainer, RenderPosition.AFTERBEGIN);
+    document.addEventListener('keydown', this.#onEscKeyDown);
+  }
+
+  destroy() {
+    if (this.#newWaypointComponent === null) {
+      return;
+    }
+
+    this.#handleDestroy();
+
+    remove(this.#newWaypointComponent);
+    this.#newWaypointComponent = null;
+
+    document.removeEventListener('keydown', this.#onEscKeyDown);
+  }
+
+  #onSave = (waypoint) => {
     this.#handleDataChange(USER_ACTION.ADD_POINT, UPDATE_TYPE.MAJOR, {
       ...waypoint,
       isFavorite: false
     });
   };
 
-  #handleCancelClick = () => {
+  #onCancel = () => {
     this.destroy();
   };
 
-  #escKeyDownHandler = (evt) => {
+  #onEscKeyDown = (evt) => {
     if (isEscape(evt.key)) {
       evt.preventDefault();
       this.destroy();

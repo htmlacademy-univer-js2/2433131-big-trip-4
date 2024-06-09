@@ -5,6 +5,7 @@ import WaypointPresenter from './waypoint-presenter';
 import {
   ACTIONS as USER_ACTION,
   EVENTS_MESSAGE,
+  FILTER_TYPE,
   FILTER_TYPE_MESSAGE,
   SORTING_TYPES,
   TIME_LIMITS,
@@ -13,11 +14,15 @@ import {
 import NewWaypointPresenter from './new-waypoint-presenter';
 import LoadingView from '../view/loading-view';
 import UiBlocker from '../framework/ui-blocker/ui-blocker';
+import {getRoute, getTotalPrice} from '../utils';
+import InfoView from '../view/info-view';
 
 export default class WaypointsListPresenter {
   #eventListContainer = new EventListView();
   #waypointPresenters = [];
   #eventContainer;
+  #mainContainer;
+  #infoComponent;
   #sorts;
   #filters;
   #currentSortType;
@@ -36,7 +41,8 @@ export default class WaypointsListPresenter {
     upperLimit: TIME_LIMITS.UPPER_LIMIT
   });
 
-  constructor({eventContainer, waypointsModel, filterModel, sorts, filters, onNewPointDestroy}) {
+  constructor({mainContainer, eventContainer, waypointsModel, filterModel, sorts, filters, onNewPointDestroy}) {
+    this.#mainContainer = mainContainer;
     this.#eventContainer = eventContainer;
     this.#sorts = sorts;
     this.#filters = filters;
@@ -49,8 +55,8 @@ export default class WaypointsListPresenter {
 
   init() {
     this.renderWaypoints();
-    this.#filterModel.addObserver(this.#handleFilterTypeChange.bind(this));
-    this.waypointsModel.addObserver(this.#handleModelEvent);
+    this.#filterModel.addObserver(this.#onFilterTypeChange.bind(this));
+    this.waypointsModel.addObserver(this.#onModelEvent);
   }
 
   createWaypoint() {
@@ -58,11 +64,13 @@ export default class WaypointsListPresenter {
       destinations: this.waypointsModel.getDestinations(),
       offers: this.waypointsModel.getOffers(),
       pointListContainer: this.#eventListContainer.element,
-      onDataChange: this.#handleWaypointChange,
+      onDataChange: this.#onChangeWaypoint,
       onDestroy: this.#onNewPointDestroy,
       closeAllEditForms: () => this.#closeAllEditForms(),
     });
 
+    this.#filterModel.setFilter(FILTER_TYPE.EVERYTHING);
+    this.#sortWaypoints(this.#sorts[0].name);
     this.#newPointPresenter.init();
   }
 
@@ -91,15 +99,11 @@ export default class WaypointsListPresenter {
     this.#sortsComponent = new SortView({
       sorts: this.#sorts,
       currentSort: this.#currentSortType,
-      onChange: this.#handleSortTypeChange
+      onChange: this.#onSortTypeChange
     });
 
-    render(
-      this.#sortsComponent,
-      this.#eventContainer,
-      RenderPosition.AFTERBEGIN
-    );
-
+    this.#renderInfo();
+    render(this.#sortsComponent, this.#eventContainer, RenderPosition.AFTERBEGIN);
     filteredPoints.forEach((waypoint) => this.#renderWaypoint(waypoint));
   }
 
@@ -115,8 +119,16 @@ export default class WaypointsListPresenter {
       remove(this.#sortsComponent);
     }
 
+    if (this.#infoComponent) {
+      remove(this.#infoComponent);
+    }
+
     if (this.#emptyComponent) {
       remove(this.#emptyComponent);
+    }
+
+    if (this.#newPointPresenter) {
+      this.#newPointPresenter.destroy();
     }
   }
 
@@ -128,7 +140,7 @@ export default class WaypointsListPresenter {
     this.#waypointPresenters.forEach((waypoint) => waypoint.closeForm());
   }
 
-  #handleWaypointChange = async (action, type, waypoint) => {
+  #onChangeWaypoint = async (action, type, waypoint) => {
     this.#uiBlocker.block();
     switch (action) {
       case USER_ACTION.ADD_POINT:
@@ -167,7 +179,7 @@ export default class WaypointsListPresenter {
       offers: this.waypointsModel.getOffers(),
       containerElement: this.#eventListContainer.element,
       closeAllEditForms: () => this.#closeAllEditForms(),
-      onChange: this.#handleWaypointChange
+      onChange: this.#onChangeWaypoint
     });
     waypointPresenter.init(waypoint);
     this.#waypointPresenters.push(waypointPresenter);
@@ -182,18 +194,24 @@ export default class WaypointsListPresenter {
     );
   }
 
-  #handleSortTypeChange = (sortType) => {
-    if (sortType === this.#currentSortType) {
-      return;
-    }
-    this.#sortWaypoints(sortType);
-    this.#deleteWaypoints();
-    this.waypointsModel.getWaypoints().forEach((waypoint) => this.#renderWaypoint(waypoint));
-  };
+  #renderInfo() {
+    const route = getRoute(
+      this.#sortWaypoints(SORTING_TYPES.DAY, this.waypointsModel.getWaypoints()),
+      this.waypointsModel.destinations
+    );
+    this.#infoComponent = new InfoView({
+      route: route.route,
+      routeDates: route.routeDates,
+      totalPrice: getTotalPrice(this.waypointsModel.getWaypoints(), this.waypointsModel.offers),
+    });
+
+    render(this.#infoComponent, this.#mainContainer, RenderPosition.AFTERBEGIN);
+  }
 
   #sortWaypoints(sortType) {
-    this.#sorts.find((sort) => sort.name === sortType).getPoints(this.waypointsModel.getWaypoints());
+    const sortedWaypoints = this.#sorts.find((sort) => sort.name === sortType).getPoints(this.waypointsModel.getWaypoints());
     this.#currentSortType = sortType;
+    return sortedWaypoints;
   }
 
   #getFilteredWaypoints(waypoints) {
@@ -205,13 +223,23 @@ export default class WaypointsListPresenter {
     this.#waypointPresenters = [];
   }
 
-  #handleFilterTypeChange() {
+  #onSortTypeChange = (sortType) => {
+    if (sortType === this.#currentSortType) {
+      return;
+    }
+
+    this.#sortWaypoints(sortType);
+    this.#deleteWaypoints();
+    this.waypointsModel.getWaypoints().forEach((waypoint) => this.#renderWaypoint(waypoint));
+  };
+
+  #onFilterTypeChange() {
     this.reset();
     this.#currentSortType = SORTING_TYPES.DAY;
     this.renderWaypoints();
   }
 
-  #handleModelEvent = (updateType, data) => {
+  #onModelEvent = (updateType, data) => {
     switch (updateType) {
       case UPDATE_TYPE.PATCH:
         this.#waypointPresenters.get(data.id).init(data);
@@ -222,6 +250,7 @@ export default class WaypointsListPresenter {
         break;
       case UPDATE_TYPE.MAJOR:
         this.#currentSortType = SORTING_TYPES.DAY;
+        this.#sortWaypoints(this.#currentSortType);
         this.reset();
         this.renderWaypoints();
         break;
