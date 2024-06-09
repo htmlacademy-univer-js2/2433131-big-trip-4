@@ -28,60 +28,6 @@ export default class WaypointPresenter {
     this.init(this.#waypoint);
   }
 
-  init(waypoint) {
-    this.#waypoint = waypoint;
-
-    const prevWaypointComponent = this.#waypointComponent;
-    const prevEditComponent = this.#editComponent;
-
-    this.#waypointComponent = new WaypointView({
-      destinations: this.#destinations,
-      offers: this.#offers,
-      waypoint: waypoint,
-      onEditClick: () => this.openForm(),
-      onFavoriteClick: () => this.#handleFavoriteClick()
-    });
-
-    this.#editComponent = new EditingFormView({
-      offers: this.#offers,
-      destinations: this.#destinations,
-      waypoint: waypoint,
-      onFormSubmit: (newWaypoint) => this.#handleSaveClick(newWaypoint),
-      onClose: () => this.closeForm(),
-      onDelete: this.#handleDeleteClick
-    });
-
-    if (!prevWaypointComponent || !prevEditComponent) {
-      render(this.#waypointComponent, this.#containerElement);
-      return;
-    }
-
-    if (this.#isEdit) {
-      replace(this.#editComponent, prevEditComponent);
-    } else {
-      replace(this.#waypointComponent, prevWaypointComponent);
-    }
-
-    remove(prevWaypointComponent);
-    remove(prevEditComponent);
-  }
-
-  openForm() {
-    this.#closeAllEditForms();
-    replace(this.#editComponent, this.#waypointComponent);
-    document.addEventListener('keydown', this.#escKeyDownHandler);
-    this.#isEdit = true;
-  }
-
-  closeForm() {
-    if (this.#isEdit) {
-      this.#editComponent.reset(this.#waypoint);
-      replace(this.#waypointComponent, this.#editComponent);
-      document.removeEventListener('keydown', this.#escKeyDownHandler);
-      this.#isEdit = false;
-    }
-  }
-
   setSavingStatus() {
     if (this.#isEdit) {
       this.#editComponent.updateElement({
@@ -114,7 +60,66 @@ export default class WaypointPresenter {
     this.#editComponent.shake(resetFormState);
   }
 
-  #escKeyDownHandler = (evt) => {
+  init(waypoint) {
+    this.#waypoint = waypoint;
+
+    const prevWaypointComponent = this.#waypointComponent;
+    const prevEditComponent = this.#editComponent;
+
+    this.#waypointComponent = new WaypointView({
+      destinations: this.#destinations,
+      offers: this.#offers,
+      waypoint: waypoint,
+      onEditClick: () => this.openForm(),
+      onFavoriteClick: () => this.#onClickFavorite()
+    });
+
+    this.#editComponent = new EditingFormView({
+      offers: this.#offers,
+      destinations: this.#destinations,
+      waypoint: waypoint,
+      onFormSubmit: (newWaypoint) => this.#onSave(newWaypoint),
+      onClose: () => this.closeForm(),
+      onDelete: this.#onDelete
+    });
+
+    if (!prevWaypointComponent || !prevEditComponent) {
+      render(this.#waypointComponent, this.#containerElement);
+      return;
+    }
+
+    if (this.#isEdit) {
+      replace(this.#editComponent, prevEditComponent);
+    } else {
+      replace(this.#waypointComponent, prevWaypointComponent);
+    }
+
+    remove(prevWaypointComponent);
+    remove(prevEditComponent);
+  }
+
+  openForm() {
+    this.#closeAllEditForms();
+    replace(this.#editComponent, this.#waypointComponent);
+    document.addEventListener('keydown', this.#onEscKeyDown);
+    this.#isEdit = true;
+  }
+
+  closeForm() {
+    if (this.#isEdit) {
+      this.#editComponent.reset(this.#waypoint);
+      replace(this.#waypointComponent, this.#editComponent);
+      document.removeEventListener('keydown', this.#onEscKeyDown);
+      this.#isEdit = false;
+    }
+  }
+
+  destroy() {
+    remove(this.#waypointComponent);
+    remove(this.#editComponent);
+  }
+
+  #onEscKeyDown = (evt) => {
     if (isEscape(evt.key)) {
       evt.preventDefault();
       this.#editComponent.reset(this.#waypoint);
@@ -122,7 +127,7 @@ export default class WaypointPresenter {
     }
   };
 
-  #handleFavoriteClick = () => {
+  #onClickFavorite = () => {
     this.#onChange(
       USER_ACTION.UPDATE_POINT,
       UPDATE_TYPE.MINOR,
@@ -130,7 +135,7 @@ export default class WaypointPresenter {
     );
   };
 
-  #handleSaveClick = (waypoint) => {
+  #onSave = (waypoint) => {
     this.#onChange(
       USER_ACTION.UPDATE_POINT,
       UPDATE_TYPE.MINOR,
@@ -138,12 +143,7 @@ export default class WaypointPresenter {
     );
   };
 
-  destroy() {
-    remove(this.#waypointComponent);
-    remove(this.#editComponent);
-  }
-
-  #handleDeleteClick = (point) => {
+  #onDelete = (point) => {
     this.#onChange(
       USER_ACTION.DELETE_POINT,
       UPDATE_TYPE.MINOR,

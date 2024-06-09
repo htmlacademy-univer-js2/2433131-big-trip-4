@@ -3,12 +3,12 @@ import FilterView from '../view/filter-view';
 import {FILTER_TYPE} from '../const';
 
 export default class FilterPresenter {
-  #filterContainer;
-  #filters;
   #filterComponent = null;
+  #waypoints = null;
   #filterModel;
   #waypointsModel;
-  #waypoints = null;
+  #filterContainer;
+  #filters;
 
   constructor({filterContainer, filterModel, waypointsModel, filters}) {
     this.#filterContainer = filterContainer;
@@ -32,9 +32,7 @@ export default class FilterPresenter {
     const prevFilterComponent = this.#filterComponent;
 
     this.#filterComponent = new FilterView({
-      filters: this.filters,
-      type: this.#filterModel.filter,
-      onChange: this.#handleTypeChange
+      filters: this.filters, type: this.#filterModel.filter, onChange: this.#onChangeType
     });
 
     if (prevFilterComponent === null) {
@@ -48,7 +46,7 @@ export default class FilterPresenter {
     render(this.#filterComponent, this.#filterContainer);
   }
 
-  #handleTypeChange = (type) => {
+  #onChangeType = (type) => {
     if (this.#filterModel.filter === type) {
       return;
     }
