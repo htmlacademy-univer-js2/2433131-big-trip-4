@@ -34,14 +34,14 @@ export default class SortView extends AbstractView {
     this.#currentSort = currentSort;
     this.#handleTypeChange = onChange;
 
-    this.element.addEventListener('click', this.#changeTypeHandler);
+    this.element.addEventListener('click', this.#onChangeType);
   }
 
   get template() {
     return createSortTemplate(this.#sorts, this.#currentSort);
   }
 
-  #changeTypeHandler = (evt) => {
+  #onChangeType = (evt) => {
     if (evt.target.classList.contains('trip-sort__input')) {
       this.#handleTypeChange(evt.target.dataset.sortType);
     }

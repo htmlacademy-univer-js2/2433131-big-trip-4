@@ -24,18 +24,6 @@ export default class WaypointsModel extends Observable {
     return this.offers;
   }
 
-  getWaypoint(id) {
-    return this.waypoints.find((waypoint) => waypoint.id === id);
-  }
-
-  setWaypoints(waypoints) {
-    this.waypoints = waypoints;
-  }
-
-  setWaypoint(waypoint, id) {
-    this.waypoints = [...this.waypoints.filter((other) => other.id !== id), waypoint];
-  }
-
   async init() {
     try {
       const waypoints = await this.#waypointsService.events;

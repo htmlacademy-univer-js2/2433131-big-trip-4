@@ -29,9 +29,7 @@ function createWaypointTemplate(destinations, allOffers, {
   const destinationObject = destinations.find((dest) => dest.id === destination);
   const offersObject = allOffers.find((offer) => offer.type === type)?.offers.filter((offer) => offers.includes(offer.id));
 
-  const favoriteClassName = isFavorite
-    ? 'event__favorite-btn--active'
-    : '';
+  const favoriteClassName = isFavorite ? 'event__favorite-btn--active' : '';
 
   return `
     <li class="trip-events__item">
@@ -84,20 +82,20 @@ export default class WaypointView extends AbstractView {
     this.#handleEditClick = onEditClick;
     this.#handleFavoriteClick = onFavoriteClick;
 
-    this.element.querySelector('.event__rollup-btn').onclick = this.#editClickHandler;
-    this.element.querySelector('.event__favorite-btn').onclick = this.#favoriteClickHandler;
+    this.element.querySelector('.event__rollup-btn').onclick = this.#onEdit;
+    this.element.querySelector('.event__favorite-btn').onclick = this.#onClickFavorite;
   }
 
   get template() {
     return createWaypointTemplate(this.#destinations, this.#offers, this.waypoint);
   }
 
-  #editClickHandler = (event) => {
+  #onEdit = (event) => {
     event.preventDefault();
     this.#handleEditClick();
   };
 
-  #favoriteClickHandler = (event) => {
+  #onClickFavorite = (event) => {
     event.preventDefault();
     this.#handleFavoriteClick();
   };

@@ -34,14 +34,14 @@ export default class FilterView extends AbstractView {
     this.#type = type;
     this.#handleTypeChange = onChange;
 
-    this.element.addEventListener('click', this.#typeChangeHandler);
+    this.element.addEventListener('click', this.#onChangeType);
   }
 
   get template() {
     return createFilterTemplate(this.#filters, this.#type);
   }
 
-  #typeChangeHandler = (event) => {
+  #onChangeType = (event) => {
     if (event.target.classList.contains('trip-filters__filter-input')) {
       this.#handleTypeChange(event.target.value);
     }
