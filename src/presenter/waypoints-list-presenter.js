@@ -107,20 +107,6 @@ export default class WaypointsListPresenter {
     filteredPoints.forEach((waypoint) => this.#renderWaypoint(waypoint));
   }
 
-  #renderInfo() {
-    const route = getRoute(
-      this.#sortWaypoints(SORTING_TYPES.DAY, this.waypointsModel.getWaypoints()),
-      this.waypointsModel.destinations
-    );
-    this.#infoComponent = new InfoView({
-      route: route.route,
-      routeDates: route.routeDates,
-      totalPrice: getTotalPrice(this.waypointsModel.getWaypoints(), this.waypointsModel.offers),
-    });
-
-    render(this.#infoComponent, this.#mainContainer, RenderPosition.AFTERBEGIN);
-  }
-
   reset() {
     this.#waypointPresenters.forEach((waypointPresenter) => waypointPresenter.destroy());
     this.#waypointPresenters = [];
