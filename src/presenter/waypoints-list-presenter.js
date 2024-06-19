@@ -245,6 +245,7 @@ export default class WaypointsListPresenter {
         this.#waypointPresenters.get(data.id).init(data);
         break;
       case UPDATE_TYPE.MINOR:
+        this.#sortWaypoints(this.#currentSortType);
         this.reset();
         this.renderWaypoints();
         break;

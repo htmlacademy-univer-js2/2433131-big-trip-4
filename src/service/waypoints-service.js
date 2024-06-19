@@ -67,6 +67,10 @@ export default class WaypointsService extends ApiService {
     delete adaptedWaypoint.dateTo;
     delete adaptedWaypoint.isFavorite;
 
+    if (Object.hasOwn(adaptedWaypoint, 'isLoading')) {
+      delete adaptedWaypoint['isLoading'];
+    }
+
     return adaptedWaypoint;
   }
 }
