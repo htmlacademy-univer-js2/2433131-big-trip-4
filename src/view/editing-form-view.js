@@ -1,5 +1,5 @@
 import {humanizeWaypointDueDate} from '../utils.js';
-import {ACTIONS, DATE_FORMAT_EDIT} from '../const.js';
+import {ACTIONS, DATE_FORMAT_EDIT, ONE_MINUTE} from '../const.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view';
 import 'flatpickr/dist/flatpickr.min.css';
 import flatpickr from 'flatpickr';
@@ -224,7 +224,7 @@ export default class EditingFormView extends AbstractStatefulView {
         ['time_24hr']: true,
         dateFormat: 'd/m/y H:i',
         defaultDate: this._state.dateTo,
-        minDate: this.#datepickerFrom.selectedDates[0],
+        minDate: new Date(this.#datepickerFrom.selectedDates[0]?.getTime() + ONE_MINUTE),
         enableTime: true,
         onChange: this.#onCloseDateTo,
       }
