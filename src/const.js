@@ -1,6 +1,7 @@
 const API_SRC = 'https://23.objects.htmlacademy.pro/big-trip';
 const AUTHORIZATION = 'Basic awdaf5g34123csdrh56w2r51';
 
+const ONE_MINUTE = 60000;
 const MAX_EVENTS_LENGTH = 3;
 
 const ACTIONS = {
@@ -55,6 +56,7 @@ const FILTER_TYPE_MESSAGE = {
 
 export {
   API_SRC,
+  ONE_MINUTE,
   AUTHORIZATION,
   MAX_EVENTS_LENGTH,
   ACTIONS,
