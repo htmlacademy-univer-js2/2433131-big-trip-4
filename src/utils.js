@@ -1,15 +1,15 @@
 import dayjs from 'dayjs';
-import {FILTER_TYPE, SORTING_TYPES} from './const';
+import {FILTER_TYPE, MAX_EVENTS_LENGTH, SORTING_TYPES} from './const';
 
-export function humanizeWaypointDueDate(dueDate, format) {
+function humanizeWaypointDueDate(dueDate, format) {
   return dueDate ? dayjs(dueDate).format(format) : '';
 }
 
-export function countDuration(dateFrom, dateTo) {
+function countDuration(dateFrom, dateTo) {
   return dayjs(dateTo).diff(dateFrom, 'm');
 }
 
-export function formatDuration(minutes) {
+function formatDuration(minutes) {
   const days = Math.floor(minutes / 24 / 60);
   const hours = Math.floor(minutes / 60) - (days * 24);
   minutes = minutes - hours * 60 - days * 60 * 24;
@@ -27,13 +27,13 @@ export function formatDuration(minutes) {
   return result;
 }
 
-export function isEscape(key) {
+function isEscape(key) {
   return key === 'Escape' || key === 'Esc';
 }
 
-export const formatDate = (date, formatPattern) => date ? dayjs(date).format(formatPattern) : '';
+const formatDate = (date, formatPattern) => date ? dayjs(date).format(formatPattern) : '';
 
-export const getRoute = (events, destinations) => {
+const getRoute = (events, destinations) => {
   let route = '';
   let routeDates = '';
   const eventsLength = events.length;
@@ -46,7 +46,7 @@ export const getRoute = (events, destinations) => {
     ${formatDate(lastEvent.dateTo, 'DD MMM')}
   `;
 
-  if (eventsLength <= 3) {
+  if (eventsLength <= MAX_EVENTS_LENGTH) {
     route = events
       .map((event) => destinations.find((destination) => destination.id === event.destination).name)
       .join(' &mdash; ');
@@ -61,14 +61,14 @@ export const getRoute = (events, destinations) => {
   return {route, routeDates};
 };
 
-export const getOfferById = (offers, type, id) =>
+const getOfferById = (offers, type, id) =>
   offers
     .find((offer) => offer.type === type).offers
     .find((item) => item.id === id);
 
-export const getTotalEventPrice = (event, offers) =>
+const getTotalEventPrice = (event, offers) =>
   event.basePrice + event.offers.reduce((sum, offer) => sum + getOfferById(offers, event.type, offer).price, 0);
-export const getTotalPrice = (events, offers) =>
+const getTotalPrice = (events, offers) =>
   events.reduce((sum, event) => sum + getTotalEventPrice(event, offers), 0);
 
 const filters = {
@@ -78,7 +78,7 @@ const filters = {
   [FILTER_TYPE.PAST]: (points) => points.filter((point) => new Date(point.dateTo) < new Date()),
 };
 
-export function getFilters() {
+function getFilters() {
   return Object.entries(filters).map(([name, getPoints]) => ({
     name,
     getPoints,
@@ -93,10 +93,24 @@ const sorts = {
   [SORTING_TYPES.OFFERS]: (points) => points,
 };
 
-export function getSorts() {
+function getSorts() {
   return Object.entries(sorts).map(([name, getPoints]) => ({
     name,
     getPoints,
     isDisabled: name === SORTING_TYPES.EVENT || name === SORTING_TYPES.OFFERS
   }));
 }
+
+export {
+  humanizeWaypointDueDate,
+  countDuration,
+  formatDuration,
+  isEscape,
+  formatDate,
+  getRoute,
+  getOfferById,
+  getTotalEventPrice,
+  getTotalPrice,
+  getFilters,
+  getSorts
+};
